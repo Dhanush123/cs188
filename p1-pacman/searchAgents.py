@@ -288,21 +288,27 @@ class CornersProblem(search.SearchProblem):
         # Please add any code here which you would like to use
         # in initializing the problem
         "*** YOUR CODE HERE ***"
+        self.cornersVisited = {(1,1):False, (1,top):False, (right, 1):False, (right, top):False}
+        self.costFn = lambda x: 1
 
     def getStartState(self):
         """
         Returns the start state (in your state space, not the full Pacman state
         space)
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return (self.startingPosition,self.corners)
 
     def isGoalState(self, state):
         """
         Returns whether this search state is a goal state of the problem.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        allVisited = True
+        for key, value in self.cornersVisited:
+            if value == False:
+                allVisited = False
+                break 
+        return allVisited
 
     def getSuccessors(self, state):
         """
@@ -325,6 +331,15 @@ class CornersProblem(search.SearchProblem):
             #   hitsWall = self.walls[nextx][nexty]
 
             "*** YOUR CODE HERE ***"
+            x,y = state
+            dx, dy = Actions.directionToVector(action)
+            nextx, nexty = int(x + dx), int(y + dy)
+            if not self.walls[nextx][nexty]:
+                nextState = ((nextx, nexty),self.corners)
+                if (nextx, nexty) in self.corners:
+                    self.cornersVisited[(nextx,nexty)] = True
+                cost = self.costFn(nextState)
+                successors.append( ( nextState, action, cost) )
 
         self._expanded += 1 # DO NOT CHANGE
         return successors
@@ -360,7 +375,8 @@ def cornersHeuristic(state, problem):
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
     "*** YOUR CODE HERE ***"
-    return 0 # Default to trivial solution
+    return max([manhattanHeuristic(state[0], corners[i]) for i in corners ])
+    # return 0 # Default to trivial solution
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"

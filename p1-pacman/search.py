@@ -130,7 +130,7 @@ def uniformCostSearch(problem):
         if nodeState not in closed:
             closed.add(nodeState)
             for state, direc, cost in problem.getSuccessors(nodeState):
-                fringe.push((state,nodeSteps+[direc],nodeCost),nodeCost+cost)
+                fringe.push((state,nodeSteps+[direc],nodeCost+cost),nodeCost+cost)
 
 def nullHeuristic(state, problem=None):
     """
@@ -153,7 +153,7 @@ def aStarSearch(problem, heuristic=nullHeuristic):
         if nodeState not in closed:
             closed.add(nodeState)
             for state, direc, cost in problem.getSuccessors(nodeState):
-                fringe.push((state,nodeSteps+[direc],nodeCost),nodeCost+cost+heuristic(state,problem))
+                fringe.push((state,nodeSteps+[direc],nodeCost+cost),nodeCost+cost+heuristic(state,problem))
 
 
 # Abbreviations
