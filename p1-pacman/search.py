@@ -108,7 +108,9 @@ def breadthFirstSearch(problem):
     while True:
         if fringe.isEmpty():
             return None
-        nodeState, nodeSteps, nodeCost = fringe.pop()
+        # nodeState, nodeSteps, nodeCost = fringe.pop()
+        node = fringe.pop()
+        nodeState, nodeSteps, nodeCost = node[0], node[1], node[2]
         if problem.isGoalState(nodeState):
             return nodeSteps #steps
         if nodeState not in closed:

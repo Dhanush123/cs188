@@ -288,7 +288,7 @@ class CornersProblem(search.SearchProblem):
         # Please add any code here which you would like to use
         # in initializing the problem
         "*** YOUR CODE HERE ***"
-        self.cornersVisited = {(1,1):False, (1,top):False, (right, 1):False, (right, top):False}
+        self.cornersVisited = ((1,1,False), (1,top,False), (right, 1,False), (right, top,False))
         self.costFn = lambda x: 1
 
     def getStartState(self):
@@ -296,7 +296,7 @@ class CornersProblem(search.SearchProblem):
         Returns the start state (in your state space, not the full Pacman state
         space)
         """
-        return self.startingPosition
+        return (self.startingPosition,self.cornersVisited)
 
     def isGoalState(self, state):
         """
@@ -304,9 +304,9 @@ class CornersProblem(search.SearchProblem):
         """
         "*** YOUR CODE HERE ***"
         allVisited = True
-        for key, value in self.cornersVisited.items():
-            print key, value
-            if value == False:
+        for x,y,boolz in state[1]:
+            print x,y,boolz
+            if boolz == False:
                 allVisited = False
                 break 
         return allVisited
@@ -333,16 +333,22 @@ class CornersProblem(search.SearchProblem):
 
             "*** YOUR CODE HERE ***"
             print "state",state
-            x,y = state
+            print "state0",state[0]
+            x,y = state[0]
             dx, dy = Actions.directionToVector(action)
             nextx, nexty = int(x + dx), int(y + dy)
-
             if not self.walls[nextx][nexty]:
                 nextState = (nextx, nexty)
-                if (nextx, nexty) in self.corners:
-                    self.cornersVisited[nextState] = True
                 cost = self.costFn(nextState)
-                successors.append((nextState, action, cost))
+                listy = list(state[1])
+                if (nextx, nexty, False) in state[1]:
+                    print "found corner!!!"
+                    listy = list(state[1])
+                    listy[listy.index((nextx, nexty, False))] = (nextx, nexty, True)
+                listy = tuple(listy)
+                
+                successors.append( ( (nextState,listy), action, cost ) ) 
+
 
         self._expanded += 1 # DO NOT CHANGE
         return successors
@@ -378,7 +384,12 @@ def cornersHeuristic(state, problem):
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
     "*** YOUR CODE HERE ***"
-    m = max([manhattanHeuristic(state[0], corners[i]) for i in corners ])
+    print "heuristic state",state
+    usableCorners = []
+    for x,y,boolz in state[1]:
+        if not value:
+            usableCorners.append(key)
+    m = max([manhattanHeuristic(state[0], usableCorners[i]) for i in usableCorners])
     print "cornersHeuristics value:",m
     return m
     # return 0 # Default to trivial solution
