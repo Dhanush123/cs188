@@ -296,7 +296,7 @@ class CornersProblem(search.SearchProblem):
         Returns the start state (in your state space, not the full Pacman state
         space)
         """
-        return (self.startingPosition,self.corners)
+        return self.startingPosition
 
     def isGoalState(self, state):
         """
@@ -304,7 +304,8 @@ class CornersProblem(search.SearchProblem):
         """
         "*** YOUR CODE HERE ***"
         allVisited = True
-        for key, value in self.cornersVisited:
+        for key, value in self.cornersVisited.items():
+            print key, value
             if value == False:
                 allVisited = False
                 break 
@@ -331,15 +332,17 @@ class CornersProblem(search.SearchProblem):
             #   hitsWall = self.walls[nextx][nexty]
 
             "*** YOUR CODE HERE ***"
+            print "state",state
             x,y = state
             dx, dy = Actions.directionToVector(action)
             nextx, nexty = int(x + dx), int(y + dy)
+
             if not self.walls[nextx][nexty]:
-                nextState = ((nextx, nexty),self.corners)
+                nextState = (nextx, nexty)
                 if (nextx, nexty) in self.corners:
-                    self.cornersVisited[(nextx,nexty)] = True
+                    self.cornersVisited[nextState] = True
                 cost = self.costFn(nextState)
-                successors.append( ( nextState, action, cost) )
+                successors.append((nextState, action, cost))
 
         self._expanded += 1 # DO NOT CHANGE
         return successors
@@ -375,7 +378,9 @@ def cornersHeuristic(state, problem):
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
     "*** YOUR CODE HERE ***"
-    return max([manhattanHeuristic(state[0], corners[i]) for i in corners ])
+    m = max([manhattanHeuristic(state[0], corners[i]) for i in corners ])
+    print "cornersHeuristics value:",m
+    return m
     # return 0 # Default to trivial solution
 
 class AStarCornersAgent(SearchAgent):
