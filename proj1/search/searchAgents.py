@@ -288,6 +288,7 @@ class CornersProblem(search.SearchProblem):
         # Please add any code here which you would like to use
         # in initializing the problem
         "*** YOUR CODE HERE ***"
+        self.cornersState = ( (1, 1, False), (1, top, False), (right, 1, False), (right, top, False) )
 
     def getStartState(self):
         """
@@ -295,14 +296,20 @@ class CornersProblem(search.SearchProblem):
         space)
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return ( self.startingPosition, self.cornersState )
 
     def isGoalState(self, state):
         """
         Returns whether this search state is a goal state of the problem.
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+       # for corner in self.corners:
+       #     if startingGameState.hasFood(*corner):
+        for x, y, visited in state[1]:
+            if not visited:
+                return False
+        return True
+
+
 
     def getSuccessors(self, state):
         """
@@ -319,13 +326,19 @@ class CornersProblem(search.SearchProblem):
         for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
             # Add a successor state to the successor list if the action is legal
             # Here's a code snippet for figuring out whether a new position hits a wall:
-            #   x,y = currentPosition
-            #   dx, dy = Actions.directionToVector(action)
-            #   nextx, nexty = int(x + dx), int(y + dy)
-            #   hitsWall = self.walls[nextx][nexty]
-
-            "*** YOUR CODE HERE ***"
-
+            x,y  = state[0]
+            dx, dy = Actions.directionToVector(action)
+            nextx, nexty = int(x + dx), int(y + dy)
+            hitsWall = self.walls[nextx][nexty]
+            if not hitsWall:
+                nextState = (nextx, nexty, False)
+                cornersState = list(state[1])
+                if nextState in cornersState:
+                    cornersState[cornersState.index(nextState)] = (nextx, nexty, True)
+                
+                successors.append((((nextx, nexty), tuple(cornersState)), action, 1 ))
+                #print successors
+                
         self._expanded += 1 # DO NOT CHANGE
         return successors
 
