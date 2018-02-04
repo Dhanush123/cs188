@@ -333,7 +333,6 @@ class CornersProblem(search.SearchProblem):
                 if nextState in self.corners:
                     cs[self.corners.index(nextState)] = True
                 successors.append(((nextState, tuple(cs)), action, 1 ))
-                #print successors
                 
         self._expanded += 1 # DO NOT CHANGE
         return successors
@@ -541,7 +540,6 @@ class AnyFoodSearchProblem(PositionSearchProblem):
         The state is Pacman's position. Fill this in with a goal test that will
         complete the problem definition.
         """
-        x,y = state
         return state in self.food.asList()
 
 
