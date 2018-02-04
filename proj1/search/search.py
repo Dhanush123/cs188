@@ -104,6 +104,7 @@ def breadthFirstSearch(problem):
     closed = set()
     fringe = util.Queue();
     fringe.push([(problem.getStartState(), '', 0)])
+    print "aha", fringe.isEmpty()
     while (not fringe.isEmpty()):
         node = fringe.pop()
         if(problem.isGoalState(node[-1][0])):
@@ -147,7 +148,8 @@ def aStarSearch(problem, heuristic=nullHeuristic):
             return steps
         if(state not in closed):
             closed.add(state)
-            for newState, newStep, newCost in problem.getSuccessors(state):
+            successors = problem.getSuccessors(state)
+            for newState, newStep, newCost in sorted(successors, key=lambda x: cost+x[2]+heuristic(x[0], problem)):
                 fringe.push((newState, steps+[newStep], cost+newCost), cost+newCost+heuristic(newState, problem))
     return False
 
