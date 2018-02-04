@@ -466,38 +466,16 @@ def foodHeuristic(state, problem):
     problem.heuristicInfo['wallCount']
     """
     position, foodGrid = state
-    print position
-    print foodGrid.asList()
     walls = [w for w in problem.walls.asList() if w[0] != 0 and w[1] != 0]
-    print walls
-    if 'wallCount' in problem.heuristicInfo:
-        problem.heuristicInfo['wallCount']  = problem.heuristicInfo['wallCount'] if problem.heuristicInfo['wallCount'] > 0 else 0
-    else:
-        problem.heuristicInfo['wallCount'] = len(walls)
     surs = 0
     dis = []
 
-    
-        
-    if ( position[0], position[1]-1 ) in walls:
-        problem.heuristicInfo['wallCount'] -= 1
-    if ( position[0], position[1]+1 ) in walls:
-        problem.heuristicInfo['wallCount'] -= 1
-    if ( position[0]-1, position[1] ) in walls:
-        problem.heuristicInfo['wallCount'] -= 1
-    if ( position[0]+1, position[1] ) in walls:
-        problem.heuristicInfo['wallCount'] -= 1
-   
     for f in foodGrid.asList():
         if (f[0], f[1]-1) in walls or (f[0]-1, f[1]) in walls:
             surs = 2
         dis.append(manDis(position, f))
     
-    if problem.heuristicInfo['wallCount']< 0:
-        problem.heuristicInfo['wallCount'] = 0
-    print problem.heuristicInfo['wallCount']
     if dis:
-        print max(dis) + problem.heuristicInfo['wallCount']
         return max(dis) + surs
     return 0
 
