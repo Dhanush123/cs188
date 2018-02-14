@@ -4,7 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
+#
 # Attribution Information: The Pacman AI projects were developed at UC Berkeley.
 # The core projects and autograders were primarily created by John DeNero
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
@@ -28,6 +28,7 @@ class ReflexAgent(Agent):
       headers.
     """
 
+    visitedSpots = []
 
     def getAction(self, gameState):
         """
@@ -48,7 +49,6 @@ class ReflexAgent(Agent):
         chosenIndex = random.choice(bestIndices) # Pick randomly among the best
 
         "Add more of your code here if you want to"
-
         return legalMoves[chosenIndex]
 
     def evaluationFunction(self, currentGameState, action):
@@ -74,7 +74,20 @@ class ReflexAgent(Agent):
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
         "*** YOUR CODE HERE ***"
-        return successorGameState.getScore()
+        ############################################################################
+        # self.visitedSpots.append(successorGameState.getPacmanPosition())
+        moveWeight = -500 if successorGameState.getPacmanPosition() == currentGameState.getPacmanPosition() else 100
+        foodsWeight = 10*min([manhattanDistance(newPos,foodPos) for foodPos in successorGameState.getFood().asList()])
+        ghostsWeight = 10*manhattanDistance(newPos,newGhostStates[0].getPosition())
+        succScoreWeight = successorGameState.getScore()
+        pelletWeight = -100*manhattanDistance(newPos,successorGameState.getCapsules()[0]) if successorGameState.getCapsules() else 0
+        # visitWeight = -100 if successorGameState.getPacmanPosition() in self.visitedSpots else 100
+        if any(newScaredTimes):
+            # ghostsWeight = -float('inf')
+            foodsWeight = float('inf')
+        retval = moveWeight+foodsWeight+ghostsWeight+succScoreWeight+pelletWeight
+        print(moveWeight,foodsWeight,ghostsWeight,succScoreWeight,pelletWeight,retval)
+        return retval
 
 def scoreEvaluationFunction(currentGameState):
     """
@@ -176,4 +189,3 @@ def betterEvaluationFunction(currentGameState):
 
 # Abbreviation
 better = betterEvaluationFunction
-
