@@ -75,35 +75,19 @@ class ReflexAgent(Agent):
 
         "*** YOUR CODE HERE ***"
         ############################################################################
-        # retval = successorGameState.getScore()
-        # curFood = len(successorGameState.getFood().asList())
-        # pastFood = len(currentGameState.getFood().asList())
-        # if curFood < pastFood:
-        #     retval += 50
-        # ghostsWeight = manhattanDistance(newPos,newGhostStates[0].getPosition())
-        # retval += ghostsWeight
-        # food = -10*max([manhattanDistance(newPos,foodPos) for foodPos in successorGameState.getFood().asList()])
-        # retval += food
-        # moveWeight = -15 if successorGameState.getPacmanPosition() == currentGameState.getPacmanPosition() else 0
-        # foodsWeight = -10*food
-        # ghostsWeight = 10*manhattanDistance(newPos,newGhostStates[0].getPosition()) if manhattanDistance(newPos,newGhostStates[0].getPosition()) > food else 100
-        #     retval += pelletWeight
-        # # visitWeight = -100 if successorGameState.getPacmanPosition() in self.visitedSpots else 100
-
-        #      foodsWeight *= 100
-        # retval = moveWeight+foodsWeight+ghostsWeight+succScoreWeight+pelletWeight
-        # print(moveWeight,foodsWeight,ghostsWeight,succScoreWeight,pelletWeight,retval)
-        # print(succScoreWeight,foodsWeight,-ghostsWeight,+moveWeight)
-        # retval = succScoreWeight+foodsWeight -ghostsWeight+moveWeight
+        self.visitedSpots.append(newPos)
+        food = max([manhattanDistance(newPos,foodPos) for foodPos in successorGameState.getFood().asList()])
+        moveWeight = -float('inf') if successorGameState.getPacmanPosition() == currentGameState.getPacmanPosition() else 0
+        foodsWeight = 5*food
+        ghostsWeight = -2*manhattanDistance(newPos,newGhostStates[0].getPosition()) if manhattanDistance(newPos,newGhostStates[0].getPosition()) > food else 100
         succScoreWeight = successorGameState.getScore()
-        foodsWeight = -50/max([manhattanDistance(newPos,foodPos) for foodPos in successorGameState.getFood().asList()])
-        ghostWeight = 10/max([manhattanDistance(newPos,ghost.getPosition()) for ghost in newGhostStates])
-        # pelletWeight = 0.1
-        # if successorGameState.getCapsules():
-        #     pelletWeight = -5*manhattanDistance(newPos,successorGameState.getCapsules()[0])
+        pelletWeight = -5*manhattanDistance(newPos,successorGameState.getCapsules()[0]) if successorGameState.getCapsules() else 0
+        visitWeight = -50 if successorGameState.getPacmanPosition() in self.visitedSpots else 10
         if any(newScaredTimes):
-            ghostWeight = -float("inf")
-        retval = succScoreWeight + foodsWeight + ghostWeight
+            ghostsWeight = 0
+            foodsWeight = float('inf')
+        retval =foodsWeight+ghostsWeight+succScoreWeight+pelletWeight
+        print(foodsWeight,ghostsWeight,succScoreWeight,pelletWeight,retval)
         return retval
 
 def scoreEvaluationFunction(currentGameState):
