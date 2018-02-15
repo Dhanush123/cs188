@@ -146,10 +146,21 @@ class MinimaxAgent(MultiAgentSearchAgent):
         """
         global curAgentIndex
         curAgentIndex = 0
+        global gLevel
+        gLevel = 0
+        global gActions
+        gActions = gameState.getLegalActions(0)
+        global goPath
+        goPath = gActions[0]
+        global goVal
+        goVal = -float("inf")
+        print gActions
 
         def value(state):
+            global gLevel
             retval = 0
-            if state.isWin() or state.isLose():
+            print "curAgentIndex",curAgentIndex,"gLevel",gLevel
+            if state.isWin() or state.isLose() or gLevel == self.depth:
                 print("W/L")
                 retval = self.evaluationFunction(state)
             elif curAgentIndex == 0:
@@ -158,28 +169,44 @@ class MinimaxAgent(MultiAgentSearchAgent):
             else:
                 print("min")
                 retval = minVal(state)
-            print "->",retval
+            gLevel += 1
+            print "retval:",retval
             return retval
 
         def maxVal(state):
+            global goPath
+            global goVal
             global curAgentIndex
             v = -float("inf")
-            actions = gameState.getLegalActions(curAgentIndex)
+            actions = state.getLegalActions(curAgentIndex)
             for action in actions:
                 succr = state.generateSuccessor(curAgentIndex, action)
-                v = max(v, value(succr))
+                succVal = value(succr)
+                v = max(v, succVal)
+                print("succVal",succVal)
+                #########################
+                if succVal > goVal and curAgentIndex == 0:
+                    print goVal,"->",succVal
+                    print goPath,"->",action
+                    goVal = succVal
+                    goPath = action
+                #########################
             curAgentIndex = (curAgentIndex + 1) % gameState.getNumAgents()
             return v
+
         def minVal(state):
             global curAgentIndex
             v = float("inf")
-            actions = gameState.getLegalActions(curAgentIndex)
+            actions = state.getLegalActions(curAgentIndex)
             for action in actions:
                 succr = state.generateSuccessor(curAgentIndex, action)
                 v = min(v, value(succr))
-            curAgentIndex = (curAgentIndex + 1) % gameState.getNumAgents()
+            # curAgentIndex = (curAgentIndex + 1) % gameState.getNumAgents()
             return v
-        return value(gameState)
+
+        value(gameState)
+        print("goVal&Path",goVal,goPath)
+        return goPath
         # print "numagents",gameState.getNumAgents()
         # print "win or lose",gameState.isWin(),gameState.isLose()
         # print "actions",gameState.getLegalActions(1)
