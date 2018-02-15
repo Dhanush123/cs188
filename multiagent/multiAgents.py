@@ -73,16 +73,16 @@ class ReflexAgent(Agent):
 
         "*** YOUR CODE HERE ***"
         ############################################################################
-        food = max([manhattanDistance(newPos,foodPos) for foodPos in successorGameState.getFood().asList()])
-        foods = food if food > 0 else 1
-        ghosts = manhattanDistance(newPos,newGhostStates[0].getPosition()) if manhattanDistance(newPos,newGhostStates[0].getPosition()) > 0 else -1
+        foodsWeight = 5
+        ghostsWeight = -20
+        if any(newScaredTimes):
+            ghostsWeight *= 5
+            foodsWeight = float('inf')
+        food = min([manhattanDistance(newPos,foodPos) for foodPos in successorGameState.getFood().asList()]) if len(successorGameState.getFood().asList()) else 0
+        foods = foodsWeight/food if food > 0 else 0
+        ghosts = ghostsWeight/manhattanDistance(newPos,newGhostStates[0].getPosition()) if manhattanDistance(newPos,newGhostStates[0].getPosition()) > 0 else 0
         scores = successorGameState.getScore()
-        foodsWeight = 10
-        ghostsWeight = -10
-        # if any(newScaredTimes):
-        #     ghostsWeight *= 10
-        #     foodsWeight = float('inf')
-        retval =(foodsWeight)*(1/foods)+(ghostsWeight)*(1/ghosts)+scores
+        retval =foods+ghosts+scores
         print "new score:",retval
         return retval
 
@@ -144,8 +144,45 @@ class MinimaxAgent(MultiAgentSearchAgent):
           gameState.isLose():
             Returns whether or not the game state is a losing state
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        global curAgentIndex
+        curAgentIndex = 0
+
+        def value(state):
+            retval = 0
+            if state.isWin() or state.isLose():
+                print("W/L")
+                retval = self.evaluationFunction(state)
+            elif curAgentIndex == 0:
+                print("max")
+                retval = maxVal(state)
+            else:
+                print("min")
+                retval = minVal(state)
+            print "->",retval
+            return retval
+
+        def maxVal(state):
+            global curAgentIndex
+            v = -float("inf")
+            actions = gameState.getLegalActions(curAgentIndex)
+            for action in actions:
+                succr = state.generateSuccessor(curAgentIndex, action)
+                v = max(v, value(succr))
+            curAgentIndex = (curAgentIndex + 1) % gameState.getNumAgents()
+            return v
+        def minVal(state):
+            global curAgentIndex
+            v = float("inf")
+            actions = gameState.getLegalActions(curAgentIndex)
+            for action in actions:
+                succr = state.generateSuccessor(curAgentIndex, action)
+                v = min(v, value(succr))
+            curAgentIndex = (curAgentIndex + 1) % gameState.getNumAgents()
+            return v
+        return value(gameState)
+        # print "numagents",gameState.getNumAgents()
+        # print "win or lose",gameState.isWin(),gameState.isLose()
+        # print "actions",gameState.getLegalActions(1)
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
