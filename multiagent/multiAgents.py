@@ -28,8 +28,6 @@ class ReflexAgent(Agent):
       headers.
     """
 
-    visitedSpots = []
-
     def getAction(self, gameState):
         """
         You do not need to change this method, but you're welcome to.
@@ -75,19 +73,17 @@ class ReflexAgent(Agent):
 
         "*** YOUR CODE HERE ***"
         ############################################################################
-        self.visitedSpots.append(newPos)
         food = max([manhattanDistance(newPos,foodPos) for foodPos in successorGameState.getFood().asList()])
-        moveWeight = -float('inf') if successorGameState.getPacmanPosition() == currentGameState.getPacmanPosition() else 0
-        foodsWeight = 5*food
-        ghostsWeight = -2*manhattanDistance(newPos,newGhostStates[0].getPosition()) if manhattanDistance(newPos,newGhostStates[0].getPosition()) > food else 100
-        succScoreWeight = successorGameState.getScore()
-        pelletWeight = -5*manhattanDistance(newPos,successorGameState.getCapsules()[0]) if successorGameState.getCapsules() else 0
-        visitWeight = -50 if successorGameState.getPacmanPosition() in self.visitedSpots else 10
-        if any(newScaredTimes):
-            ghostsWeight = 0
-            foodsWeight = float('inf')
-        retval =foodsWeight+ghostsWeight+succScoreWeight+pelletWeight
-        print(foodsWeight,ghostsWeight,succScoreWeight,pelletWeight,retval)
+        foods = food if food > 0 else 1
+        ghosts = manhattanDistance(newPos,newGhostStates[0].getPosition()) if manhattanDistance(newPos,newGhostStates[0].getPosition()) > 0 else -1
+        scores = successorGameState.getScore()
+        foodsWeight = 10
+        ghostsWeight = -10
+        # if any(newScaredTimes):
+        #     ghostsWeight *= 10
+        #     foodsWeight = float('inf')
+        retval =(foodsWeight)*(1/foods)+(ghostsWeight)*(1/ghosts)+scores
+        print "new score:",retval
         return retval
 
 def scoreEvaluationFunction(currentGameState):
