@@ -144,73 +144,50 @@ class MinimaxAgent(MultiAgentSearchAgent):
           gameState.isLose():
             Returns whether or not the game state is a losing state
         """
-        global curAgentIndex
-        curAgentIndex = 0
-        global gLevel
-        gLevel = 0
-        global gActions
-        gActions = gameState.getLegalActions(0)
-        global goPath
-        goPath = gActions[0]
-        global goVal
-        goVal = -float("inf")
-        print gActions
+        # def value(state):
 
-        def value(state):
-            global gLevel
-            retval = 0
-            print "curAgentIndex",curAgentIndex,"gLevel",gLevel
-            if state.isWin() or state.isLose() or gLevel == self.depth:
-                print("W/L")
-                retval = self.evaluationFunction(state)
-            elif curAgentIndex == 0:
-                print("max")
-                retval = maxVal(state)
-            else:
-                print("min")
-                retval = minVal(state)
-            gLevel += 1
-            print "retval:",retval
-            return retval
+        # def maxVal(state):
 
-        def maxVal(state):
-            global goPath
-            global goVal
-            global curAgentIndex
-            v = -float("inf")
-            actions = state.getLegalActions(curAgentIndex)
+        # def minVal(state):
+        global bestAction
+        bestAction = -float("inf")
+        def minimax(player, ply, isPac, state):
+          global bestAction
+          if ply == 0 or state.isWin() or state.isLose():
+            result = self.evaluationFunction(state)
+            return result
+          if isPac:
+            bestV = -float("inf")
+            actions = state.getLegalActions(player)
             for action in actions:
-                succr = state.generateSuccessor(curAgentIndex, action)
-                succVal = value(succr)
-                v = max(v, succVal)
-                print("succVal",succVal)
-                #########################
-                if succVal > goVal and curAgentIndex == 0:
-                    print goVal,"->",succVal
-                    print goPath,"->",action
-                    goVal = succVal
-                    goPath = action
-                #########################
-            curAgentIndex = (curAgentIndex + 1) % gameState.getNumAgents()
-            return v
-
-        def minVal(state):
-            global curAgentIndex
-            v = float("inf")
-            actions = state.getLegalActions(curAgentIndex)
+              newState = state.generateSuccessor(player, action)
+              nextPlayer = (player+1)%state.getNumAgents()
+              v = minimax(nextPlayer,ply,False,newState)
+              if v > bestV and ply == self.depth:
+                bestAction = action
+              bestV = max(bestV, v)
+            return bestV
+          else:
+            bestV = float("inf")
+            actions = state.getLegalActions(player)
             for action in actions:
-                succr = state.generateSuccessor(curAgentIndex, action)
-                v = min(v, value(succr))
-            # curAgentIndex = (curAgentIndex + 1) % gameState.getNumAgents()
-            return v
-
-        value(gameState)
-        print("goVal&Path",goVal,goPath)
-        return goPath
-        # print "numagents",gameState.getNumAgents()
-        # print "win or lose",gameState.isWin(),gameState.isLose()
-        # print "actions",gameState.getLegalActions(1)
-
+              newState = state.generateSuccessor(player, action)
+              nextPlayer = (player+1)%state.getNumAgents()
+              isPac = True if nextPlayer == 0 else False
+              tempPly = ply-1 if isPac else ply
+              # print "ply",ply,"isPac",isPac
+              v = minimax(nextPlayer,tempPly,isPac,newState)
+              bestV = min(bestV, v)
+            return bestV 
+        finalAction = minimax(0,self.depth,True,gameState)
+        # pacTopActions = gameState.getLegalActions(0)
+        # pacTopOptions = [minimax(0, self.depth, True, gameState) for action in pacTopActions]
+        # finalVal = max(pacTopOptions)
+        # topIndex = pacTopActions
+        # print "pacTopActions",pacTopActions
+        # print "pacTopOptions",pacTopOptions
+        # print "-----> finalVal:",finalVal
+        return bestAction
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
       Your minimax agent with alpha-beta pruning (question 3)
