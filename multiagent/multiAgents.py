@@ -5,6 +5,7 @@
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
 # 
+#
 # Attribution Information: The Pacman AI projects were developed at UC Berkeley.
 # The core projects and autograders were primarily created by John DeNero
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
@@ -28,7 +29,6 @@ class ReflexAgent(Agent):
       headers.
     """
 
-
     def getAction(self, gameState):
         """
         You do not need to change this method, but you're welcome to.
@@ -48,7 +48,6 @@ class ReflexAgent(Agent):
         chosenIndex = random.choice(bestIndices) # Pick randomly among the best
 
         "Add more of your code here if you want to"
-
         return legalMoves[chosenIndex]
 
     def evaluationFunction(self, currentGameState, action):
@@ -69,12 +68,22 @@ class ReflexAgent(Agent):
         # Useful information you can extract from a GameState (pacman.py)
         successorGameState = currentGameState.generatePacmanSuccessor(action)
         newPos = successorGameState.getPacmanPosition()
-        newFood = successorGameState.getFood()
+        newFood = successorGameState.getFood().asList()
         newGhostStates = successorGameState.getGhostStates()
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
+        scores = successorGameState.getScore()
+        ghostPos = newGhostStates[0].getPosition()
 
-        "*** YOUR CODE HERE ***"
-        return successorGameState.getScore()
+        if any(newScaredTimes):
+            return float('inf')
+
+        foodsWeight = 5
+        ghostsWeight = -20
+        food = min([manhattanDistance(newPos,foodPos) for foodPos in newFood]) if len(newFood) else 0
+        foods = foodsWeight/food if food > 0 else 0
+        ghosts = ghostsWeight/manhattanDistance(newPos, ghostPos) if manhattanDistance(newPos, ghostPos) > 0 else 0
+        retval = foods+ghosts+scores
+        return retval
 
 def scoreEvaluationFunction(currentGameState):
     """
@@ -134,8 +143,44 @@ class MinimaxAgent(MultiAgentSearchAgent):
           gameState.isLose():
             Returns whether or not the game state is a losing state
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+
+        global bestAction
+        bestAction = -float("inf")
+        def minimax(player, ply, isPac, state):
+          global bestAction
+          if ply == 0 or state.isWin() or state.isLose():
+            return self.evaluationFunction(state)
+          if isPac:
+            bestV = -float("inf")
+            actions = state.getLegalActions(player)
+            for action in actions:
+              newState = state.generateSuccessor(player, action)
+              nextPlayer = (player+1)%state.getNumAgents()
+              v = minimax(nextPlayer,ply,False,newState)
+              if v > bestV and ply == self.depth:
+                bestAction = action
+              bestV = max(bestV, v)
+            return bestV
+          else:
+            bestV = float("inf")
+            actions = state.getLegalActions(player)
+            for action in actions:
+              newState = state.generateSuccessor(player, action)
+              nextPlayer = (player+1)%state.getNumAgents()
+              isPac = True if nextPlayer == 0 else False
+              tempPly = ply-1 if isPac else ply
+              v = minimax(nextPlayer,tempPly,isPac,newState)
+              bestV = min(bestV, v)
+            return bestV 
+        finalAction = minimax(0,self.depth,True,gameState)
+        # pacTopActions = gameState.getLegalActions(0)
+        # pacTopOptions = [minimax(0, self.depth, True, gameState) for action in pacTopActions]
+        # finalVal = max(pacTopOptions)
+        # topIndex = pacTopActions
+        # print "pacTopActions",pacTopActions
+        # print "pacTopOptions",pacTopOptions
+        # print "-----> finalVal:",finalVal
+        return bestAction
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
@@ -146,8 +191,41 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         """
           Returns the minimax action using self.depth and self.evaluationFunction
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        global bestAction
+        bestAction = -float("inf")
+        def minimax(player, ply, isPac, state, alpha, beta):
+          global bestAction
+          actions = state.getLegalActions(player)
+          if ply == 0 or state.isWin() or state.isLose():
+            return self.evaluationFunction(state)
+          if isPac:
+            bestV = -float("inf")
+            for action in actions:
+              newState = state.generateSuccessor(player, action)
+              nextPlayer = (player+1)%state.getNumAgents()
+              v = minimax(nextPlayer, ply, False, newState, alpha, beta)
+              if v > bestV and ply == self.depth:
+                bestAction = action
+              bestV = max(bestV, v)
+              if bestV >= beta:
+                return bestV
+              alpha = max(alpha, bestV)
+            return bestV
+          else:
+            bestV = float("inf")
+            for action in actions:
+              newState = state.generateSuccessor(player, action)
+              nextPlayer = (player+1)%state.getNumAgents()
+              isPac = True if nextPlayer == 0 else False
+              tempPly = ply-1 if isPac else ply
+              v = minimax(nextPlayer,tempPly,isPac,newState, alpha, beta)
+              bestV = min(bestV, v)
+              if bestV <= alpha:
+                return bestV
+              beta = min(beta, bestV)
+            return bestV 
+        finalAction = minimax(0,self.depth,True,gameState, -float("inf"), float("inf"))
+        return bestAction
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
@@ -176,4 +254,3 @@ def betterEvaluationFunction(currentGameState):
 
 # Abbreviation
 better = betterEvaluationFunction
-
