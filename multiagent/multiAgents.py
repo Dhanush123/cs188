@@ -4,6 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
+# 
 #
 # Attribution Information: The Pacman AI projects were developed at UC Berkeley.
 # The core projects and autograders were primarily created by John DeNero
@@ -67,23 +68,21 @@ class ReflexAgent(Agent):
         # Useful information you can extract from a GameState (pacman.py)
         successorGameState = currentGameState.generatePacmanSuccessor(action)
         newPos = successorGameState.getPacmanPosition()
-        newFood = successorGameState.getFood()
+        newFood = successorGameState.getFood().asList()
         newGhostStates = successorGameState.getGhostStates()
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
+        scores = successorGameState.getScore()
+        ghostPos = newGhostStates[0].getPosition()
 
-        "*** YOUR CODE HERE ***"
-        ############################################################################
+        if any(newScaredTimes):
+            return float('inf')
+
         foodsWeight = 5
         ghostsWeight = -20
-        if any(newScaredTimes):
-            ghostsWeight *= 5
-            foodsWeight = float('inf')
-        food = min([manhattanDistance(newPos,foodPos) for foodPos in successorGameState.getFood().asList()]) if len(successorGameState.getFood().asList()) else 0
+        food = min([manhattanDistance(newPos,foodPos) for foodPos in newFood]) if len(newFood) else 0
         foods = foodsWeight/food if food > 0 else 0
-        ghosts = ghostsWeight/manhattanDistance(newPos,newGhostStates[0].getPosition()) if manhattanDistance(newPos,newGhostStates[0].getPosition()) > 0 else 0
-        scores = successorGameState.getScore()
+        ghosts = ghostsWeight/manhattanDistance(newPos, ghostPos) if manhattanDistance(newPos, ghostPos) > 0 else 0
         retval = foods+ghosts+scores
-        print "new score:",retval
         return retval
 
 def scoreEvaluationFunction(currentGameState):
@@ -144,18 +143,13 @@ class MinimaxAgent(MultiAgentSearchAgent):
           gameState.isLose():
             Returns whether or not the game state is a losing state
         """
-        # def value(state):
 
-        # def maxVal(state):
-
-        # def minVal(state):
         global bestAction
         bestAction = -float("inf")
         def minimax(player, ply, isPac, state):
           global bestAction
           if ply == 0 or state.isWin() or state.isLose():
-            result = self.evaluationFunction(state)
-            return result
+            return self.evaluationFunction(state)
           if isPac:
             bestV = -float("inf")
             actions = state.getLegalActions(player)
@@ -175,7 +169,6 @@ class MinimaxAgent(MultiAgentSearchAgent):
               nextPlayer = (player+1)%state.getNumAgents()
               isPac = True if nextPlayer == 0 else False
               tempPly = ply-1 if isPac else ply
-              # print "ply",ply,"isPac",isPac
               v = minimax(nextPlayer,tempPly,isPac,newState)
               bestV = min(bestV, v)
             return bestV 
@@ -188,6 +181,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
         # print "pacTopOptions",pacTopOptions
         # print "-----> finalVal:",finalVal
         return bestAction
+
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
       Your minimax agent with alpha-beta pruning (question 3)
@@ -197,8 +191,41 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         """
           Returns the minimax action using self.depth and self.evaluationFunction
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        global bestAction
+        bestAction = -float("inf")
+        def minimax(player, ply, isPac, state, alpha, beta):
+          global bestAction
+          actions = state.getLegalActions(player)
+          if ply == 0 or state.isWin() or state.isLose():
+            return self.evaluationFunction(state) 
+          if isPac:
+            bestV = -float("inf")
+            for action in actions:
+              newState = state.generateSuccessor(player, action)
+              nextPlayer = (player+1)%state.getNumAgents()
+              v = minimax(nextPlayer, ply, False, newState, alpha, beta)
+              if v > bestV and ply == self.depth:
+                bestAction = action
+              bestV = max(bestV, v)
+              if bestV > beta:
+                return bestV
+              alpha = max(alpha, bestV)
+            return bestV
+          else:
+            bestV = float("inf")
+            for action in actions:
+              newState = state.generateSuccessor(player, action)
+              nextPlayer = (player+1)%state.getNumAgents()
+              isPac = True if nextPlayer == 0 else False
+              tempPly = ply-1 if isPac else ply
+              v = minimax(nextPlayer,tempPly,isPac,newState, alpha, beta)
+              bestV = min(bestV, v)
+              if bestV < alpha:
+                return bestV
+              beta = min(beta, bestV)
+            return bestV 
+        finalAction = minimax(0,self.depth,True,gameState, -float("inf"), float("inf"))
+        return bestAction
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
@@ -212,8 +239,37 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
           All ghosts should be modeled as choosing uniformly at random from their
           legal moves.
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        global bestAction
+        bestAction = -float("inf")
+        def minimax(player, ply, isPac, state):
+          global bestAction
+          if ply == 0 or state.isWin() or state.isLose():
+            return self.evaluationFunction(state)
+          if isPac:
+            bestV = -float("inf")
+            actions = state.getLegalActions(player)
+            for action in actions:
+              newState = state.generateSuccessor(player, action)
+              nextPlayer = (player+1)%state.getNumAgents()
+              v = minimax(nextPlayer,ply,False,newState)
+              # print "evaluating: ", action, " and it has state value", v
+              if v > bestV and ply == self.depth:
+                bestAction = action
+               # print "action taken is ", bestAction, " with state value", v
+              bestV = max(bestV, v)
+            return bestV
+          else:
+            bestV = 0
+            actions = state.getLegalActions(player)
+            for action in actions:
+              newState = state.generateSuccessor(player, action)
+              nextPlayer = (player+1)%state.getNumAgents()
+              isPac = True if nextPlayer == 0 else False
+              tempPly = ply-1 if isPac else ply
+              bestV += minimax(nextPlayer,tempPly,isPac,newState)
+            return bestV/float(len(actions))
+        finalAction = minimax(0,self.depth,True,gameState)
+        return bestAction       
 
 def betterEvaluationFunction(currentGameState):
     """
@@ -222,8 +278,23 @@ def betterEvaluationFunction(currentGameState):
 
       DESCRIPTION: <write something here so we know what you did>
     """
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+
+    pacPos = currentGameState.getPacmanPosition()
+    ghostStates = currentGameState.getGhostStates()
+    ghostPos = ghostStates[0].getPosition()
+    foods = currentGameState.getFood().asList()
+    scores = currentGameState.getScore()
+    capsules = currentGameState.getCapsules()
+    
+    capWeight = 50
+    foodsWeight = 8
+    ghostsWeight = -20
+    foodScore = foodsWeight/min([manhattanDistance(pacPos,foodPos) for foodPos in foods]) if len(foods) else 0
+    ghostScore = ghostsWeight/manhattanDistance(pacPos, ghostPos) if manhattanDistance(pacPos, ghostPos) > 0 else 0
+    capScore = capWeight/min([manhattanDistance(pacPos, capPos) for capPos in
+        capsules]) if len(capsules) else 0
+
+    return scores + foodScore + ghostScore + capScore
 
 # Abbreviation
 better = betterEvaluationFunction
