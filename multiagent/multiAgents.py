@@ -197,7 +197,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
           global bestAction
           actions = state.getLegalActions(player)
           if ply == 0 or state.isWin() or state.isLose():
-            return self.evaluationFunction(state)
+            return self.evaluationFunction(state) 
           if isPac:
             bestV = -float("inf")
             for action in actions:
@@ -207,7 +207,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
               if v > bestV and ply == self.depth:
                 bestAction = action
               bestV = max(bestV, v)
-              if bestV >= beta:
+              if bestV > beta:
                 return bestV
               alpha = max(alpha, bestV)
             return bestV
@@ -220,7 +220,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
               tempPly = ply-1 if isPac else ply
               v = minimax(nextPlayer,tempPly,isPac,newState, alpha, beta)
               bestV = min(bestV, v)
-              if bestV <= alpha:
+              if bestV < alpha:
                 return bestV
               beta = min(beta, bestV)
             return bestV 
@@ -239,8 +239,35 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
           All ghosts should be modeled as choosing uniformly at random from their
           legal moves.
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        global bestAction
+        bestAction = -float("inf")
+        def minimax(player, ply, isPac, state):
+          global bestAction
+          if ply == 0 or state.isWin() or state.isLose():
+            return self.evaluationFunction(state)
+          if isPac:
+            bestV = -float("inf")
+            actions = state.getLegalActions(player)
+            for action in actions:
+              newState = state.generateSuccessor(player, action)
+              nextPlayer = (player+1)%state.getNumAgents()
+              v = minimax(nextPlayer,ply,False,newState)
+              if v > bestV and ply == self.depth:
+                bestAction = action
+              bestV = max(bestV, v)
+            return bestV
+          else:
+            bestV = 0
+            actions = state.getLegalActions(player)
+            for action in actions:
+              newState = state.generateSuccessor(player, action)
+              nextPlayer = (player+1)%state.getNumAgents()
+              isPac = True if nextPlayer == 0 else False
+              tempPly = ply-1 if isPac else ply
+              bestV += minimax(nextPlayer,tempPly,isPac,newState)
+            return bestV/float(len(actions))
+        finalAction = minimax(0,self.depth,True,gameState)
+        return bestAction       
 
 def betterEvaluationFunction(currentGameState):
     """
@@ -249,8 +276,28 @@ def betterEvaluationFunction(currentGameState):
 
       DESCRIPTION: <write something here so we know what you did>
     """
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+
+    pacPos = currentGameState.getPacmanPosition()
+    ghostStates = currentGameState.getGhostStates()
+    ghostPos = []
+    for g in ghostStates:
+      ghostPos.append(g.getPosition())
+    foods = currentGameState.getFood().asList()
+    scores = currentGameState.getScore()
+    
+    scaredTime = [ghostState.scaredTimer for ghostState in ghostStates]
+
+    if any(scaredTime):
+      return float('inf')
+
+    foodsWeight = 5
+    ghostsWeight = -20
+    foodScore = foodsWeight/min([manhattanDistance(pacPos,foodPos) for foodPos in foods]) if len(foods) else 0
+    ghostScore = 0
+    for g in ghostPos:
+      ghostScore += ghostsWeight/manhattanDistance(pacPos, g) if manhattanDistance(pacPos, g) > 0 else 0
+
+    return scores + foodScore + ghostScore 
 
 # Abbreviation
 better = betterEvaluationFunction
