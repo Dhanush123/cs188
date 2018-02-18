@@ -82,7 +82,7 @@ class ReflexAgent(Agent):
         foods = foodsWeight/food if food > 0 else 0
         ghosts = ghostsWeight/manhattanDistance(newPos,newGhostStates[0].getPosition()) if manhattanDistance(newPos,newGhostStates[0].getPosition()) > 0 else 0
         scores = successorGameState.getScore()
-        retval =foods+ghosts+scores
+        retval = foods+ghosts+scores
         print "new score:",retval
         return retval
 
