@@ -11,21 +11,6 @@
 # Student side autograding was added by Brad Miller, Nick Hay, and
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
 
-
-# valueIterationAgents.py
-# -----------------------
-# Licensing Information:  You are free to use or extend these projects for
-# educational purposes provided that (1) you do not distribute or publish
-# solutions, (2) you retain this notice, and (3) you provide clear
-# attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
-# Attribution Information: The Pacman AI projects were developed at UC Berkeley.
-# The core projects and autograders were primarily created by John DeNero
-# (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
-# Student side autograding was added by Brad Miller, Nick Hay, and
-# Pieter Abbeel (pabbeel@cs.berkeley.edu).
-
-
 import mdp, util
 
 from learningAgents import ValueEstimationAgent
@@ -61,7 +46,14 @@ class ValueIterationAgent(ValueEstimationAgent):
 
     def runValueIteration(self):
         # Write value iteration code here
-        "*** YOUR CODE HERE ***"
+        for _ in range(self.iterations):
+          for state in self.mdp.getStates():
+            if not self.mdp.isTerminal(state):
+              self.values[state] = [self.getQValue(state,action) for action in self.mdp.getPossibleActions(state)]
+        policies = []
+        for state in self.mdp.getStates():
+          policies.append(self.getPolicy(state))
+        return policies
 
 
     def getValue(self, state):
@@ -76,8 +68,10 @@ class ValueIterationAgent(ValueEstimationAgent):
           Compute the Q-value of action in state from the
           value function stored in self.values.
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        qSum = 0
+        for transState, transProb in self.mdp.getTransitionStatesAndProbs(state, action):
+          qSum += transProb*(self.mdp.getReward(state, action, transState) + self.discount*self.getValue(transState))
+        return qSum
 
     def computeActionFromValues(self, state):
         """
@@ -88,8 +82,22 @@ class ValueIterationAgent(ValueEstimationAgent):
           there are no legal actions, which is the case at the
           terminal state, you should return None.
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        if self.mdp.isTerminal(state):
+          return None
+        print "values",self.values[state],max(self.values[state])
+        # index = self.values[state].index(str(max(self.values[state])))
+        # return self.mdp.getPossibleActions(state)[index]
+        # maxVal = -float("inf")
+        # bestAction = ""
+        # i = 0
+        # for action in self.mdp.getPossibleActions(state):
+        #   if self.values[i] >= maxVal:
+        #     maxVal = self.values[i]
+        #     bestAction = action
+        #   i += 1
+        # return bestAction
+
+
 
     def getPolicy(self, state):
         return self.computeActionFromValues(state)
