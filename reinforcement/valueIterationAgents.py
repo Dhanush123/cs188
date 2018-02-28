@@ -66,10 +66,10 @@ class ValueIterationAgent(ValueEstimationAgent):
           Compute the Q-value of action in state from the
           value function stored in self.values.
         """
-        qSum = 0
+        qVal = 0
         for transState, transProb in self.mdp.getTransitionStatesAndProbs(state, action):
-          qSum += transProb*(self.mdp.getReward(state, action, transState) + self.discount*self.getValue(transState))
-        return qSum
+          qVal += transProb*(self.mdp.getReward(state, action, transState) + self.discount*self.getValue(transState))
+        return qVal
 
     def computeActionFromValues(self, state):
         """
@@ -85,7 +85,8 @@ class ValueIterationAgent(ValueEstimationAgent):
           return None
         for action in self.mdp.getPossibleActions(state):
           newActionVals[action] = self.computeQValueFromValues(state, action)
-        return newActionVals.argMax()
+        action = newActionVals.argMax()
+        return action
 
     def getPolicy(self, state):
         return self.computeActionFromValues(state)
@@ -128,8 +129,9 @@ class AsynchronousValueIterationAgent(ValueIterationAgent):
         states = self.mdp.getStates()
         s = len(states)
         for i in range(self.iterations):
-          if not self.mdp.isTerminal(states[i%s]) and self.mdp.getPossibleActions(states[i%s]):
-            self.values[states[i%s]] = max([self.getQValue(states[i%s],action) for action in self.mdp.getPossibleActions(states[i%s])])
+          index = i%s
+          if not self.mdp.isTerminal(states[index]) and self.mdp.getPossibleActions(states[index]):
+            self.values[states[index]] = max([self.getQValue(states[index],action) for action in self.mdp.getPossibleActions(states[index])])
 
 
 class PrioritizedSweepingValueIterationAgent(AsynchronousValueIterationAgent):
