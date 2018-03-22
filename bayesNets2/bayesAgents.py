@@ -96,7 +96,26 @@ def constructBayesNet(gameState):
     variableDomainsDict = {}
 
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    for housePos in gameState.getPossibleHouses():
+        for obsPos in gameState.getHouseWalls(housePos):
+            obsVar = OBS_VAR_TEMPLATE % obsPos
+            #assign obsVars
+            obsVars.append(obsVar)
+            #assign edges
+            edges.append((FOOD_HOUSE_VAR,obsVar))
+            edges.append((GHOST_HOUSE_VAR,obsVar))
+
+    #assign more edges values
+    edges.append((X_POS_VAR,FOOD_HOUSE_VAR))
+    edges.append((X_POS_VAR,GHOST_HOUSE_VAR))
+    edges.append((Y_POS_VAR,FOOD_HOUSE_VAR))
+    edges.append((Y_POS_VAR,GHOST_HOUSE_VAR)) 
+
+    #assign variableDomainsDict values
+    variableDomainsDict[FOOD_HOUSE_VAR] = HOUSE_VALS
+    variableDomainsDict[GHOST_HOUSE_VAR] = HOUSE_VALS  
+    variableDomainsDict[X_POS_VAR] = X_POS_VALS
+    variableDomainsDict[Y_POS_VAR] = Y_POS_VALS 
 
     variables = [X_POS_VAR, Y_POS_VAR] + HOUSE_VARS + obsVars
     net = bn.constructEmptyBayesNet(variables, edges, variableDomainsDict)
@@ -124,10 +143,15 @@ def fillYCPT(bayesNet, gameState):
     You can use the PROB_* constants imported from layout rather than writing
     probabilities down by hand.
     """
-
     yFactor = bn.Factor([Y_POS_VAR], [], bayesNet.variableDomainsDict())
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    #1 y pos
+    yFactor.setProbability({Y_POS_VAR: BOTH_TOP_VAL}, PROB_BOTH_TOP)
+    #2 y pos
+    #3 y pos
+    #4 y pos
+    yFactor.setProbability({Y_POS_VAR: GHOST_LEFT_VAL}, 1 - PROB_FOOD_LEFT)
+
     bayesNet.setCPT(Y_POS_VAR, yFactor)
 
 def fillHouseCPT(bayesNet, gameState):
