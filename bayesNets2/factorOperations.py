@@ -101,10 +101,16 @@ def joinFactors(factors):
 
 
     "*** YOUR CODE HERE ***"
-    print factors
     for factor in factors:
-        print "---"
-        print factor.conditionedVariables(),factor.unconditionedVariables()
+        print "-->",factor.unconditionedVariables()
+    uncondVars = set([var for factor in factors for var in factor.unconditionedVariables()])
+    condVars = set([var for factor in factors for var in factor.conditionedVariables()])
+    print uncondVars
+    print condVars
+    print "---"
+    condVars = uncondVars.difference(condVars)
+    print uncondVars
+    print condVars
 
 
 
