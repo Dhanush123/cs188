@@ -216,13 +216,25 @@ def fillObsCPT(bayesNet, gameState):
     """
 
     bottomLeftPos, topLeftPos, bottomRightPos, topRightPos = gameState.getPossibleHouses()
-
     "*** YOUR CODE HERE ***"
+    print "does this work???"
+    print bottomLeftPos, topLeftPos, bottomRightPos, topRightPos
     for housePos in gameState.getPossibleHouses():
         for obsPos in gameState.getHouseWalls(housePos):
             obsVar = OBS_VAR_TEMPLATE % obsPos
-            customFactor = bn.Factor([obsVar],[FOOD_HOUSE_VAR,GHOST_HOUSE_VAR],bayesNet.variableDomainsDict())
-            
+            obsFactor = bn.Factor([obsVar],[FOOD_HOUSE_VAR,GHOST_HOUSE_VAR],bayesNet.variableDomainsDict())
+            for value in obsFactor.getAllPossibleAssignmentDicts():
+                print "housePos",housePos,"obsPos",obsPos
+                valueProbab = 0
+                if value[obsVar] == NO_OBS_VAL:
+                    valueProbab = 1
+                else:
+                    if housePos[bottomLeftPos] == value[FOOD_HOUSE_VAR] or housePos[topLeftPos] == value[FOOD_HOUSE_VAR] or housePos[bottomRightPos] == value[FOOD_HOUSE_VAR] or housePos[topRightPos] == value[FOOD_HOUSE_VAR]:
+                        valueProbab = PROB_FOOD_RED if value[obsVar] == RED_OBS_VAL else 1-PROB_FOOD_RED
+                    elif housePos[bottomLeftPos] == value[GHOST_HOUSE_VAR] or housePos[topLeftPos] == value[GHOST_HOUSE_VAR] or housePos[bottomRightPos] == value[GHOST_HOUSE_VAR] or housePos[topRightPos] == value[GHOST_HOUSE_VAR]:
+                        valueProbab = PROB_GHOST_RED if value[obsVar] == RED_OBS_VAL else 1-PROB_GHOST_RED
+                obsFactor.setProbability(value,valueProbab)
+            bayesNet.setCPT(obsVar, obsFactor)
 
 
 def getMostLikelyFoodHousePosition(evidence, bayesNet, eliminationOrder):
