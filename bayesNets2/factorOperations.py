@@ -101,7 +101,7 @@ def joinFactors(factors):
 
 
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    
 
 
 def eliminateWithCallTracking(callTrackingList=None):

@@ -250,7 +250,7 @@ def fillObsCPT(bayesNet, gameState):
                     if dictVal[obsVal] != NO_OBS_VAL:
                         valProbab = PROB_GHOST_RED if dictVal[obsVal] == RED_OBS_VAL else 1-PROB_GHOST_RED
                 elif dictVal[obsVal] == NO_OBS_VAL:
-                    valProbab = 1
+                    valProbab = 1 #nothing to observe, definitely gonna happen
                 newFactor.setProbability(dictVal,valProbab)
             bayesNet.setCPT(obsVal,newFactor)
 
