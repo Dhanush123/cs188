@@ -96,6 +96,15 @@ def constructBayesNet(gameState):
     variableDomainsDict = {}
 
     "*** YOUR CODE HERE ***"
+    #init variables
+    variables = [X_POS_VAR, Y_POS_VAR]
+
+    #assign more edges values
+    edges.append((X_POS_VAR,FOOD_HOUSE_VAR))
+    edges.append((X_POS_VAR,GHOST_HOUSE_VAR))
+    edges.append((Y_POS_VAR,FOOD_HOUSE_VAR))
+    edges.append((Y_POS_VAR,GHOST_HOUSE_VAR))
+
     for housePos in gameState.getPossibleHouses():
         for obsPos in gameState.getHouseWalls(housePos):
             obsVar = OBS_VAR_TEMPLATE % obsPos
@@ -104,6 +113,7 @@ def constructBayesNet(gameState):
             #assign edges
             edges.append((FOOD_HOUSE_VAR,obsVar))
             edges.append((GHOST_HOUSE_VAR,obsVar))
+            variableDomainsDict[obsVar] = OBS_VALS
 
     #assign more edges values
     edges.append((X_POS_VAR,FOOD_HOUSE_VAR))
@@ -117,7 +127,10 @@ def constructBayesNet(gameState):
     variableDomainsDict[X_POS_VAR] = X_POS_VALS
     variableDomainsDict[Y_POS_VAR] = Y_POS_VALS
 
-    variables = [X_POS_VAR, Y_POS_VAR] + HOUSE_VARS + obsVars
+    #complete variables list
+    variables += HOUSE_VARS + obsVars
+
+    #done
     net = bn.constructEmptyBayesNet(variables, edges, variableDomainsDict)
     return net, obsVars
 
@@ -220,19 +233,30 @@ def fillObsCPT(bayesNet, gameState):
     print "does this work???"
     print bottomLeftPos, topLeftPos, bottomRightPos, topRightPos
     for housePos in gameState.getPossibleHouses():
+        # print "!!!!!"
         for obsPos in gameState.getHouseWalls(housePos):
+            # print "???"
             obsVar = OBS_VAR_TEMPLATE % obsPos
-            obsFactor = bn.Factor([obsVar],[FOOD_HOUSE_VAR,GHOST_HOUSE_VAR],bayesNet.variableDomainsDict())
+            obsFactor = bn.Factor([obsVar],[GHOST_HOUSE_VAR,FOOD_HOUSE_VAR],bayesNet.variableDomainsDict())
+            # print "$$$$"
             for value in obsFactor.getAllPossibleAssignmentDicts():
-                print "housePos",housePos,"obsPos",obsPos
+                # print "@@@@"
+                # print "housePos",housePos,"obsPos",obsPos
                 valueProbab = 0
                 if value[obsVar] == NO_OBS_VAL:
                     valueProbab = 1
                 else:
-                    if housePos[bottomLeftPos] == value[FOOD_HOUSE_VAR] or housePos[topLeftPos] == value[FOOD_HOUSE_VAR] or housePos[bottomRightPos] == value[FOOD_HOUSE_VAR] or housePos[topRightPos] == value[FOOD_HOUSE_VAR]:
-                        valueProbab = PROB_FOOD_RED if value[obsVar] == RED_OBS_VAL else 1-PROB_FOOD_RED
-                    elif housePos[bottomLeftPos] == value[GHOST_HOUSE_VAR] or housePos[topLeftPos] == value[GHOST_HOUSE_VAR] or housePos[bottomRightPos] == value[GHOST_HOUSE_VAR] or housePos[topRightPos] == value[GHOST_HOUSE_VAR]:
-                        valueProbab = PROB_GHOST_RED if value[obsVar] == RED_OBS_VAL else 1-PROB_GHOST_RED
+                    if housePos == value[FOOD_HOUSE_VAR]: 
+                        if value[obsVar] == RED_OBS_VAL:
+                            valueProbab = obsFactor.getProbability(value)
+                        elif value[obsVar] == BLUE_OBS_VAL:
+                            valueProbab = 1-obsFactor.getProbability(value)
+                    elif housePos == value[GHOST_HOUSE_VAR]:
+                        if value[obsVar] == RED_OBS_VAL:
+                            valueProbab = obsFactor.getProbability(value)
+                        elif value[obsVar] == BLUE_OBS_VAL:
+                            valueProbab = 1-obsFactor.getProbability(value)
+                # print "-->",value,valueProbab
                 obsFactor.setProbability(value,valueProbab)
             bayesNet.setCPT(obsVar, obsFactor)
 
