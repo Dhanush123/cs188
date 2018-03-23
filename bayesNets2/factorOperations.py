@@ -101,18 +101,17 @@ def joinFactors(factors):
 
 
     "*** YOUR CODE HERE ***"
-    for factor in factors:
-        print "-->",factor.unconditionedVariables()
-    uncondVars = set([var for factor in factors for var in factor.unconditionedVariables()])
-    condVars = set([var for factor in factors for var in factor.conditionedVariables()])
-    print uncondVars
-    print condVars
-    print "---"
-    condVars = uncondVars.difference(condVars)
-    print uncondVars
-    print condVars
-
-
+    uncondVars = set([var for factor in factors for var in factor.unconditionedVariables()]) #self-explanatory
+    condVars = set([var for factor in factors for var in factor.conditionedVariables()]) 
+    condVars = condVars.difference(uncondVars) #remove any duplicate vars
+    resultingFactor = Factor(uncondVars,condVars,factors[0].variableDomainsDict()) #create factor based on ^ & ^^
+    for val in resultingFactor.getAllPossibleAssignmentDicts():
+        totalProbab = 1
+        for factor in factors:
+            #calculate probability for each individual assignedment over the full list of factors
+            totalProbab *= factor.getProbability(val) 
+        resultingFactor.setProbability(val,totalProbab)
+    return resultingFactor
 
 
 def eliminateWithCallTracking(callTrackingList=None):
