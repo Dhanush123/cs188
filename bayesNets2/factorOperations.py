@@ -101,7 +101,12 @@ def joinFactors(factors):
 
 
     "*** YOUR CODE HERE ***"
-    
+    print factors
+    for factor in factors:
+        print "---"
+        print factor.conditionedVariables(),factor.unconditionedVariables()
+
+
 
 
 def eliminateWithCallTracking(callTrackingList=None):
