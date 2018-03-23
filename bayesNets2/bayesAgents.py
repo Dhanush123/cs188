@@ -230,35 +230,29 @@ def fillObsCPT(bayesNet, gameState):
 
     bottomLeftPos, topLeftPos, bottomRightPos, topRightPos = gameState.getPossibleHouses()
     "*** YOUR CODE HERE ***"
-    print "does this work???"
-    print bottomLeftPos, topLeftPos, bottomRightPos, topRightPos
+    houseNameVals = { #makes it easier to look up positions when dealing with their values
+        BOTTOM_LEFT_VAL: bottomLeftPos,
+        TOP_LEFT_VAL: topLeftPos,
+        BOTTOM_RIGHT_VAL: bottomRightPos,
+        TOP_RIGHT_VAL: topRightPos
+    }
     for housePos in gameState.getPossibleHouses():
-        # print "!!!!!"
         for obsPos in gameState.getHouseWalls(housePos):
-            # print "???"
-            obsVar = OBS_VAR_TEMPLATE % obsPos
-            obsFactor = bn.Factor([obsVar],[GHOST_HOUSE_VAR,FOOD_HOUSE_VAR],bayesNet.variableDomainsDict())
-            # print "$$$$"
-            for value in obsFactor.getAllPossibleAssignmentDicts():
-                # print "@@@@"
-                # print "housePos",housePos,"obsPos",obsPos
-                valueProbab = 0
-                if value[obsVar] == NO_OBS_VAL:
-                    valueProbab = 1
-                else:
-                    if housePos == value[FOOD_HOUSE_VAR]: 
-                        if value[obsVar] == RED_OBS_VAL:
-                            valueProbab = obsFactor.getProbability(value)
-                        elif value[obsVar] == BLUE_OBS_VAL:
-                            valueProbab = 1-obsFactor.getProbability(value)
-                    elif housePos == value[GHOST_HOUSE_VAR]:
-                        if value[obsVar] == RED_OBS_VAL:
-                            valueProbab = obsFactor.getProbability(value)
-                        elif value[obsVar] == BLUE_OBS_VAL:
-                            valueProbab = 1-obsFactor.getProbability(value)
-                # print "-->",value,valueProbab
-                obsFactor.setProbability(value,valueProbab)
-            bayesNet.setCPT(obsVar, obsFactor)
+            obsVal = OBS_VAR_TEMPLATE % obsPos
+            newFactor = bn.Factor([obsVal],[FOOD_HOUSE_VAR,GHOST_HOUSE_VAR],bayesNet.variableDomainsDict())
+            for dictVal in newFactor.getAllPossibleAssignmentDicts():
+                valProbab = 0
+                if houseNameVals[dictVal[FOOD_HOUSE_VAR]] == housePos: #prioritize food check first
+                    if dictVal[obsVal] != NO_OBS_VAL: #did this check so I could be cool and use list comprehensions :P
+                        valProbab = PROB_FOOD_RED if dictVal[obsVal] == RED_OBS_VAL else 1-PROB_FOOD_RED
+                        #^PROB_FOOD_RED = RED, 1-PROB_FOOD_RED = BLUE
+                elif houseNameVals[dictVal[GHOST_HOUSE_VAR]] == housePos:
+                    if dictVal[obsVal] != NO_OBS_VAL:
+                        valProbab = PROB_GHOST_RED if dictVal[obsVal] == RED_OBS_VAL else 1-PROB_GHOST_RED
+                elif dictVal[obsVal] == NO_OBS_VAL:
+                    valProbab = 1
+                newFactor.setProbability(dictVal,valProbab)
+            bayesNet.setCPT(obsVal,newFactor)
 
 
 def getMostLikelyFoodHousePosition(evidence, bayesNet, eliminationOrder):
