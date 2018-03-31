@@ -159,14 +159,23 @@ def eliminateWithCallTracking(callTrackingList=None):
                     "eliminationVariable:" + str(eliminationVariable) + "\n" +\
                     "unconditionedVariables: " + str(factor.unconditionedVariables()))
 
-        uncondVars = factor.unconditionedVariables().remove(eliminationVariable) #we want to remove eliminationVariable
-        resultingFactor = Factor(uncondVars, factor.conditionedVariables(), factor.variableDomainsDict())
-        for val in resultingFactor.getAllPossibleAssignmentDicts():
-            valProbab = 0
-            valProbab += factor.getProbability(val)
-            resultingFactor.setProbability(val,valProbab)
-        return resultingFactor
+        #print factor
+        eliminate_domain = factor.variableDomainsDict()[eliminationVariable]
+        unconditionedVariables = [var for var in factor.unconditionedVariables() if var != eliminationVariable]
+        domain = {}
+        for var, dom in factor.variableDomainsDict().iteritems():
+            if var != eliminationVariable:
+                domain[var] = dom
+        resultingFactor = Factor(unconditionedVariables, factor.conditionedVariables(), domain)
 
+        for assignment in resultingFactor.getAllPossibleAssignmentDicts():
+            valProbab = 0
+            for eliminate_val in eliminate_domain:
+                new_assign = dict(assignment.items() + [(eliminationVariable, eliminate_val)])
+                valProbab += factor.getProbability(new_assign)
+            resultingFactor.setProbability(assignment, valProbab)
+               
+        return resultingFactor
 
     return eliminate
 
@@ -220,6 +229,18 @@ def normalize(factor):
                             "so that total probability will sum to 1\n" + 
                             str(factor))
 
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    special_uncond = [var for var in factor.unconditionedVariables() if len(factor.variableDomainsDict()[var]) == 1]
+    unconditionedVariables = [uncond for uncond in factor.unconditionedVariables() if uncond not in special_uncond]
+    conditionedVariables = list(factor.conditionedVariables()) + special_uncond
+    
+    normalized_factor = Factor(unconditionedVariables, conditionedVariables, factor.variableDomainsDict())
 
+    sum_prob = sum([factor.getProbability(assignment) for assignment in factor.getAllPossibleAssignmentDicts()])
+
+    for assignment_norm in normalized_factor.getAllPossibleAssignmentDicts():
+        for assignment in factor.getAllPossibleAssignmentDicts():
+            if assignment_norm == assignment:
+                normalized_factor.setProbability(assignment_norm, factor.getProbability(assignment)/sum_prob)
+                break
+
+    return normalized_factor

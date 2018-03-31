@@ -268,8 +268,13 @@ def getMostLikelyFoodHousePosition(evidence, bayesNet, eliminationOrder):
     (This should be a very short method.)
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
-
+    factor = inference.inferenceByVariableElimination(bayesNet, HOUSE_VALS, evidence, eliminationOrder)
+    max_val = max([factor.getProbability(a) for a in factor.getAllPossibleAssignmentDicts()])
+    for assignment in factor.getAllPossibleAssignmentDicts():
+        if factor.getProbability(assignment) == max_val:
+            return {FOOD_HOUSE_VAR: assignment['foodHouse']}
+            
+    return None
 
 class BayesAgent(game.Agent):
 
@@ -370,8 +375,18 @@ class VPIAgent(BayesAgent):
         rightExpectedValue = 0
 
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        factor = inference.inferenceByVariableElimination(self.bayesNet, FOOD_HOUSE_VAR, evidence, eliminationOrder)
+        #print factor.getAllPossibleAssignmentDicts()
 
+        l_r_assignment_dic = {FOOD_HOUSE_VAR : TOP_LEFT_VAL, GHOST_HOUSE_VAR : TOP_RIGHT_VAL}
+        r_l_assignment_dic = {FOOD_HOUSE_VAR : TOP_RIGHT_VAL, GHOST_HOUSE_VAR : TOP_LEFT_VAL}
+        l_r_assignment_dic.update(evidence)
+        r_l_assignment_dic.update(evidence)
+
+        left_right = factor.getProbability(l_r_assignment_dic)
+        right_left = factor.getProbability(r_l_assignment_dic)
+        leftExpectedValue = left_right * WON_GAME_REWARD + right_left * GHOST_COLLISION_REWARD
+        rightExpectedValue = left_right * GHOST_COLLISION_REWARD + right_left * WON_GAME_REWARD
         return leftExpectedValue, rightExpectedValue
 
     def getExplorationProbsAndOutcomes(self, evidence):
@@ -435,8 +450,9 @@ class VPIAgent(BayesAgent):
 
         expectedValue = 0
 
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        pairs = self.getExplorationProbsAndOutcomes(evidence)
+        for p, e in pairs:
+            expectedValue += p * max(self.computeEnterValues(e, enterEliminationOrder))
 
         return expectedValue
 
