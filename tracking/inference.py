@@ -292,7 +292,11 @@ class ExactInference(InferenceModule):
         current position. However, this is not a problem, as Pacman's current
         position is known.
         """
-        "*** YOUR CODE HERE ***"
+        beliefs = DiscreteDistribution()
+        for pos in self.allPositions:
+            probab = self.getObservationProb(observation, gameState.getPacmanPosition(), pos, gameState.getJailPosition())
+            curVal = beliefs[pos]
+            beliefs[pos] = probab * curVal
         self.beliefs.normalize()
 
     def elapseTime(self, gameState):
