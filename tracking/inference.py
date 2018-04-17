@@ -4,7 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
+#
 # Attribution Information: The Pacman AI projects were developed at UC Berkeley.
 # The core projects and autograders were primarily created by John DeNero
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
@@ -74,7 +74,10 @@ class DiscreteDistribution(dict):
         >>> empty
         {}
         """
-        "*** YOUR CODE HERE ***"
+        total = self.total()
+        if total != 0:
+            for k,v in self.iteritems():
+                self[k] = v/total
 
     def sample(self):
         """
@@ -97,7 +100,20 @@ class DiscreteDistribution(dict):
         >>> round(samples.count('d') * 1.0/N, 1)
         0.0
         """
-        "*** YOUR CODE HERE ***"
+        if self.total() != 1:
+            self.normalize()
+        else:
+            listy = [(v, k) for k, v in self.iteritems()]
+            sampleNum = random.random()
+            interval = 1/self.total()
+            curInterval = interval
+            index = 0
+            while curInterval + interval <= sampleNum:
+                if curInterval + interval > sampleNum:
+                    return listy[index][0]
+                else:
+                    index += 1
+                    curInterval += interval
 
 
 class InferenceModule:
@@ -166,7 +182,10 @@ class InferenceModule:
         """
         Return the probability P(noisyDistance | pacmanPosition, ghostPosition).
         """
-        "*** YOUR CODE HERE ***"
+        if ghostPosition == jailPosition:
+            return 1
+        else:
+            return busters.getObservationProb(noisyDistance,manhattanDistance(pacmanPosition, ghostPosition))
 
     def setGhostPosition(self, gameState, ghostPosition, index):
         """
