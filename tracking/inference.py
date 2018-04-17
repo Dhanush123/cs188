@@ -77,7 +77,7 @@ class DiscreteDistribution(dict):
         total = self.total()
         if total != 0:
             for k,v in self.iteritems():
-                self[k] = v/total
+                self[k] = (v*1.0)/(total*1.0)
 
     def sample(self):
         """
@@ -102,18 +102,21 @@ class DiscreteDistribution(dict):
         """
         if self.total() != 1:
             self.normalize()
-        else:
-            listy = [(v, k) for k, v in self.iteritems()]
-            sampleNum = random.random()
-            interval = 1/self.total()
-            curInterval = interval
-            index = 0
-            while curInterval + interval <= sampleNum:
-                if curInterval + interval > sampleNum:
-                    return listy[index][0]
-                else:
-                    index += 1
-                    curInterval += interval
+        listy = [(k, v) for k, v in self.iteritems()]
+        sampleNum = random.random()
+
+        lInt = 0.0
+        rInt = listy[0][1]
+        interval = 1.0/len(listy)
+        index = 0
+
+        while rInt <= 1:
+            if sampleNum >= lInt and sampleNum < rInt:
+                return listy[index][0]
+            else:
+                index += 1
+                lInt = rInt
+                rInt += listy[index][1]
 
 
 class InferenceModule:
@@ -183,9 +186,11 @@ class InferenceModule:
         Return the probability P(noisyDistance | pacmanPosition, ghostPosition).
         """
         if ghostPosition == jailPosition:
-            return 1
+            return 0 if noisyDistance else 1
+        elif noisyDistance is None:
+            return 0
         else:
-            return busters.getObservationProb(noisyDistance,manhattanDistance(pacmanPosition, ghostPosition))
+            return busters.getObservationProbability(noisyDistance,manhattanDistance(pacmanPosition, ghostPosition))
 
     def setGhostPosition(self, gameState, ghostPosition, index):
         """
@@ -292,12 +297,11 @@ class ExactInference(InferenceModule):
         current position. However, this is not a problem, as Pacman's current
         position is known.
         """
-        beliefs = DiscreteDistribution()
-        for pos in self.allPositions:
-            probab = self.getObservationProb(observation, gameState.getPacmanPosition(), pos, gameState.getJailPosition())
-            curVal = beliefs[pos]
-            beliefs[pos] = probab * curVal
-        self.beliefs.normalize()
+        beliefz = DiscreteDistribution()
+        for location in self.allPositions:
+            beliefz[location] = self.getObservationProb(observation, gameState.getPacmanPosition(), location, self.getJailPosition()) * self.beliefs[location]
+        beliefz.normalize()
+        self.beliefs = beliefz
 
     def elapseTime(self, gameState):
         """
@@ -308,11 +312,12 @@ class ExactInference(InferenceModule):
         Pacman's current position. However, this is not a problem, as Pacman's
         current position is known.
         """
-        beliefs = DiscreteDistribution()
+        beliefz = DiscreteDistribution()
         for oldPos in self.allPositions:
-            newPosDist = self.getPositionDistribution(gameState, oldPos)
-            for newPos, probab in newPosDist.iteritems():
-                beliefs[newPos] = self.beliefs[oldPos] * probab
+          newPosDist = self.getPositionDistribution(gameState, oldPos)
+          for newPos, probab in newPosDist.items():
+            beliefz[newPos] += probab * self.beliefs[oldPos]
+        self.beliefs = beliefz
 
     def getBeliefDistribution(self):
         return self.beliefs
