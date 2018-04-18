@@ -113,11 +113,14 @@ class DiscreteDistribution(dict):
 
         while rInt <= 1:
             if sampleNum >= lInt and sampleNum < rInt:
+                #assert listy[index][0] is not None
                 return listy[index][0]
             else:
                 index += 1
                 lInt = rInt
                 rInt += listy[index][1]
+
+        return listy[-1][0]
 
 
 class InferenceModule:
@@ -344,7 +347,6 @@ class ParticleFilter(InferenceModule):
         self.particles for the list of particles.
         """
         self.particles = []
-        "*** YOUR CODE HERE ***"
         for i in range(self.numParticles):
             self.particles.append(self.legalPositions[i % len(self.legalPositions)])
 
@@ -363,19 +365,15 @@ class ParticleFilter(InferenceModule):
         """
         beliefz = DiscreteDistribution()
         for location in self.particles:
-            if location:
-                weight = self.getObservationProb(observation, gameState.getPacmanPosition(), location, self.getJailPosition())
-                beliefz[location] += weight
+            beliefz[location] += self.getObservationProb(observation, gameState.getPacmanPosition(), location, self.getJailPosition())
 
         if beliefz.total() == 0:
             self.initializeUniformly(gameState)
-            self.getBeliefDistribution()
 
         else:
             self.beliefs = beliefz
             self.beliefs.normalize()
-       
-        self.particles = [self.beliefs.sample() for i in range(self.numParticles)]
+            self.particles = [self.beliefs.sample() for i in range(self.numParticles)]
         
 
     def elapseTime(self, gameState):
@@ -383,7 +381,8 @@ class ParticleFilter(InferenceModule):
         Sample each particle's next state based on its current state and the
         gameState.
         """
-        "*** YOUR CODE HERE ***"
+        self.particles = [self.getPositionDistribution(gameState, oldPos).sample() for oldPos in self.particles]
+
 
     def getBeliefDistribution(self):
         """
