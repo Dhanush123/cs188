@@ -187,7 +187,7 @@ class InferenceModule:
         Return the probability P(noisyDistance | pacmanPosition, ghostPosition).
         """
         if ghostPosition == jailPosition:
-            return 0 if noisyDistance else 1
+            return 0 if noisyDistance is not None else 1
         elif noisyDistance is None:
             return 0
         else:
@@ -349,7 +349,6 @@ class ParticleFilter(InferenceModule):
             self.particles.append(self.legalPositions[i % len(self.legalPositions)])
 
 
-
     def observeUpdate(self, observation, gameState):
         """
         Update beliefs based on the distance observation and Pacman's position.
@@ -362,20 +361,22 @@ class ParticleFilter(InferenceModule):
         be reinitialized by calling initializeUniformly. The total method of
         the DiscreteDistribution may be useful.
         """
-        "*** YOUR CODE HERE ***"
         beliefz = DiscreteDistribution()
         for location in self.particles:
-            weight = 0 if not location else self.getObservationProb(observation, gameState.getPacmanPosition(), location,  jailPosition = self.getJailPosition())
-            beliefz[location] += weight
+            if location:
+                weight = self.getObservationProb(observation, gameState.getPacmanPosition(), location, self.getJailPosition())
+                beliefz[location] += weight
 
-        self.beliefs = beliefz
-        self.beliefs.normalize()
         if beliefz.total() == 0:
             self.initializeUniformly(gameState)
+            self.getBeliefDistribution()
 
         else:
-            for i in range(self.numParticles):
-                self.particles[i] = self.beliefs.sample()
+            self.beliefs = beliefz
+            self.beliefs.normalize()
+       
+        self.particles = [self.beliefs.sample() for i in range(self.numParticles)]
+        
 
     def elapseTime(self, gameState):
         """
@@ -390,10 +391,9 @@ class ParticleFilter(InferenceModule):
         locations conditioned on all evidence and time passage. This method
         essentially converts a list of particles into a belief distribution.
         """
-        "*** YOUR CODE HERE ***"
         self.beliefs = DiscreteDistribution()
         for p in self.particles:
-            self.beliefs[p] = 1.0
+            self.beliefs[p] += 1
 
         self.beliefs.normalize()
         return self.beliefs
