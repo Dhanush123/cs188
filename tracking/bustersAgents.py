@@ -145,12 +145,4 @@ class GreedyBustersAgent(BustersAgent):
         closest = min(ghosts_pos, key=lambda g_p: self.distancer.getDistance(pacmanPosition, g_p))
 
         return min(legal, key=lambda act: self.distancer.getDistance(Actions.getSuccessor(pacmanPosition, act), closest))
-
-        # distances = []
-        # for blf in livingGhostPositionDistributions:
-        #     distances.append(self.distancer.getDistance(blf.argMax(), pacmanPosition))
-        # distances2 = []
-        # closestPos = livingGhostPositionDistributions[distances.index(min(distances))].argMax()
-        # for legalAction in legal:
-        #     distances2.append(self.distancer.getDistance(closestPos, Actions.getSuccessor(pacmanPosition, legalAction)))
-        # return legal[distances2.index(min(distances2))]
+        
