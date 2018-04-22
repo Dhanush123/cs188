@@ -81,6 +81,9 @@ class Graph(object):
         so don't forget to call `self.add` on each of the variables.
         """
         "*** YOUR CODE HERE ***"
+        for variable in variables:
+            self.add(variable)
+
 
     def get_nodes(self):
         """
@@ -92,7 +95,7 @@ class Graph(object):
 
         Returns: a list of nodes
         """
-        "*** YOUR CODE HERE ***"
+        self.nodes
 
     def get_inputs(self, node):
         """
