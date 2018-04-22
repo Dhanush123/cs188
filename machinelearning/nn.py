@@ -310,8 +310,10 @@ class MatrixMultiply(FunctionNode):
 
     @staticmethod
     def backward(inputs, gradient):
-        print "--->",inputs[0].shape,inputs[1].shape, gradient.shape
-        return [np.dot(inputs[0].T, gradient), np.dot(inputs[1], gradient)]
+        #using checkpoint 6 formula: df/dA = C'*B^T & df/dB = A^T*C', C = gradient
+        b1 = np.dot(gradient, inputs[1].T)
+        b2 = np.dot(inputs[0].T, gradient)
+        return [b1, b2]
 
 
 class MatrixVectorAdd(FunctionNode):
@@ -328,12 +330,16 @@ class MatrixVectorAdd(FunctionNode):
 
     @staticmethod
     def forward(inputs):
-        "*** YOUR CODE HERE ***"
+        i0 = np.matrix(inputs[0])
+        i1 = np.array(inputs[1])
+        i0 += i1
+        return i0
 
     @staticmethod
     def backward(inputs, gradient):
-        "*** YOUR CODE HERE ***"
-
+        #figured out by trial and error in console
+        summed = np.sum(gradient, axis=0)
+        return [gradient, summed]
 
 class ReLU(FunctionNode):
     """
@@ -349,11 +355,12 @@ class ReLU(FunctionNode):
 
     @staticmethod
     def forward(inputs):
-        "*** YOUR CODE HERE ***"
+        #helped me: http://cs231n.github.io/neural-networks-case-study/#grad
+        return np.maximum(0, inputs[0])
 
     @staticmethod
     def backward(inputs, gradient):
-        "*** YOUR CODE HERE ***"
+        return [np.where(ReLU.forward(inputs), gradient, 0)]
 
 
 class SquareLoss(FunctionNode):
@@ -372,11 +379,14 @@ class SquareLoss(FunctionNode):
 
     @staticmethod
     def forward(inputs):
-        "*** YOUR CODE HERE ***"
+        return np.mean(0.5 * (inputs[0]-inputs[1])**2)
 
     @staticmethod
     def backward(inputs, gradient):
-        "*** YOUR CODE HERE ***"
+        #part after gradient * is derivative wrt to 2 different variables based on the forward formula above
+        i0 = gradient * (inputs[0]-inputs[1])/inputs[1].size
+        i1 = -i0
+        return [i0, i1]
 
 
 class SoftmaxLoss(FunctionNode):
