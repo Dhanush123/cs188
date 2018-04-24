@@ -349,7 +349,6 @@ class ParticleFilter(InferenceModule):
         for i in range(self.numParticles):
             self.particles.append(self.legalPositions[i % len(self.legalPositions)])
 
-
     def observeUpdate(self, observation, gameState):
         """
         Update beliefs based on the distance observation and Pacman's position.
