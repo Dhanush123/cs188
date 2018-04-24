@@ -166,7 +166,16 @@ class Graph(object):
             self.gradients[node] = np.zeros(node.data.shape)
 
         else:
-            self.gradients[node] = np.zeros(self.get_output(node.get_parents()[0]).shape)
+            ps = node.get_parents()
+            cur_s = self.get_output(ps[0]).shape
+            for p in ps:
+                if cur_s != self.get_output(p).shape:
+                    if(len(self.get_output(p).shape)>1):
+                        cur_s = (cur_s[0], self.get_output(p).shape[1])
+                    else:
+                         cur_s = (cur_s[0], 1)
+
+            self.gradients[node] = np.zeros(cur_s)
 
 
 
@@ -207,7 +216,7 @@ class Graph(object):
         """
         "*** YOUR CODE HERE ***"
         for node in self.nodes:
-            if isinstance(node, DataNode):
+            if isinstance(node, Variable):
                 node.data -= self.gradients[node] * step_size
 
 

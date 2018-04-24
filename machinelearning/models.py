@@ -46,6 +46,7 @@ class RegressionModel(Model):
         # Remember to set self.learning_rate!
         # You may use any learning rate that works well for your architecture
         "*** YOUR CODE HERE ***"
+        self.learning_rate = 0.001
 
     def run(self, x, y=None):
         """
@@ -76,10 +77,31 @@ class RegressionModel(Model):
             # that the node belongs to. The loss node must be the last node
             # added to the graph.
             "*** YOUR CODE HERE ***"
+            w1 = nn.Variable(x.shape[1], 10)
+            w2 = nn.Variable(x.shape[1], 10)
+            b1 = nn.Variable(10)
+            b2 = nn.Variable(10)
+            w1.data = np.ones(w1.data.shape) * -1.
+            w2.data = np.ones(w2.data.shape) * -1.
+            b1.data = np.ones(b1.data.shape) * -1.
+            b2.data = np.ones(b2.data.shape) * -1.
+
+            graph = nn.Graph([w1, w2, b1, b2])
+            input_x = nn.Input(graph, x)
+            l1_1 = nn.MatrixMultiply(graph, x, w1)
+            l1_2 = nn.MatrixVectorAdd(graph, l1, b2)
+            l1 = nn.ReLU(graph, l1_2)
+            l2 = nn.MatrixMultiply(graph, l1, w2)
+            loss = nn.MatrixVectorAdd(graph, l2, b2)
+
+            return loss
+            
         else:
             # At test time, the correct output is unknown.
             # You should instead return your model's prediction as a numpy array
             "*** YOUR CODE HERE ***"
+
+
 
 
 class OddRegressionModel(Model):
