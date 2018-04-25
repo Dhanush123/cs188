@@ -81,6 +81,9 @@ class Graph(object):
         so don't forget to call `self.add` on each of the variables.
         """
         "*** YOUR CODE HERE ***"
+        self.nodes = []
+        self.outputs = {}
+        self.gradients = {}
         for variable in variables:
             self.add(variable)
 
@@ -95,7 +98,7 @@ class Graph(object):
 
         Returns: a list of nodes
         """
-        self.nodes
+        return self.nodes
 
     def get_inputs(self, node):
         """
@@ -109,6 +112,7 @@ class Graph(object):
         Hint: every node has a `.get_parents()` method
         """
         "*** YOUR CODE HERE ***"
+        return [self.get_output(p) for p in node.get_parents()]
 
     def get_output(self, node):
         """
@@ -120,6 +124,8 @@ class Graph(object):
         Returns: a numpy array or a scalar
         """
         "*** YOUR CODE HERE ***"
+        return self.outputs[node]
+
 
     def get_gradient(self, node):
         """
@@ -137,6 +143,7 @@ class Graph(object):
         Returns: a numpy array
         """
         "*** YOUR CODE HERE ***"
+        return self.gradients[node]
 
     def add(self, node):
         """
@@ -153,6 +160,23 @@ class Graph(object):
         accumulator for the node, with correct shape.
         """
         "*** YOUR CODE HERE ***"
+        self.outputs[node] = node.forward(self.get_inputs(node))
+        self.nodes.append(node)
+        if isinstance(node, DataNode):
+            self.gradients[node] = np.zeros(node.data.shape)
+
+        else:
+            ps = node.get_parents()
+            cur_s = self.get_output(ps[0]).shape
+            for p in ps:
+                if cur_s != self.get_output(p).shape and isinstance(node, MatrixMultiply):
+                    if(len(self.get_output(p).shape)>1):
+                        cur_s = (cur_s[0], self.get_output(p).shape[1])
+                    else:
+                         cur_s = (cur_s[0], 1)
+
+            self.gradients[node] = np.zeros(cur_s)
+
 
     def backprop(self):
         """
@@ -172,6 +196,12 @@ class Graph(object):
         assert np.asarray(self.get_output(loss_node)).ndim == 0
 
         "*** YOUR CODE HERE ***"
+        self.gradients[loss_node] = 1.0
+        for node in reversed(self.get_nodes()):
+            p_gradients = node.backward(self.get_inputs(node), self.gradients[node])
+            for p, p_g in zip(node.get_parents(), p_gradients):
+                self.gradients[p] += p_g
+
 
     def step(self, step_size):
         """
@@ -184,6 +214,9 @@ class Graph(object):
         Hint: each Variable has a `.data` attribute
         """
         "*** YOUR CODE HERE ***"
+        for node in self.nodes:
+            if isinstance(node, Variable):
+                node.data -= self.gradients[node] * step_size
 
 
 class DataNode(object):
@@ -382,7 +415,12 @@ class SquareLoss(FunctionNode):
 
     @staticmethod
     def forward(inputs):
-        return np.mean(0.5 * (inputs[0]-inputs[1])**2)
+        mtx = np.zeros(inputs[0].shape)
+        for i in range(mtx.shape[0]):
+            for j in range(mtx.shape[1]):
+                mtx[i][j] = 0.5 * (inputs[0][i][j]-inputs[1][i][j])**2
+
+        return np.mean(mtx)
 
     @staticmethod
     def backward(inputs, gradient):

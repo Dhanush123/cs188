@@ -46,6 +46,15 @@ class RegressionModel(Model):
         # Remember to set self.learning_rate!
         # You may use any learning rate that works well for your architecture
         "*** YOUR CODE HERE ***"
+        self.learning_rate = 0.1
+        self.hidden_size = 300
+
+        self.w1 = nn.Variable(1, self.hidden_size)
+        self.w2 = nn.Variable(self.hidden_size, self.hidden_size)
+        self.w3 = nn.Variable(self.hidden_size, 1)
+        self.b1 = nn.Variable(self.hidden_size)
+        self.b2 = nn.Variable(self.hidden_size)
+        self.b3 = nn.Variable(1)
 
     def run(self, x, y=None):
         """
@@ -69,6 +78,7 @@ class RegressionModel(Model):
         Note: DO NOT call backprop() or step() inside this method!
         """
         "*** YOUR CODE HERE ***"
+        self.graph = nn.Graph([self.w1, self.w2, self.w3, self.b1, self.b2, self.b3])
 
         if y is not None:
             # At training time, the correct output `y` is known.
@@ -76,10 +86,37 @@ class RegressionModel(Model):
             # that the node belongs to. The loss node must be the last node
             # added to the graph.
             "*** YOUR CODE HERE ***"
+            input_x = nn.Input(self.graph, x)
+            input_y = nn.Input(self.graph, y)
+            xw1 = nn.MatrixMultiply(self.graph, input_x, self.w1)
+            xw1_plus_b1 = nn.MatrixVectorAdd(self.graph, xw1, self.b1)
+            l1 = nn.ReLU(self.graph, xw1_plus_b1)
+            l1w2 = nn.MatrixMultiply(self.graph, l1, self.w2)
+            l2w2_plus_b2 = nn.MatrixVectorAdd(self.graph, l1w2, self.b2)
+            l2 = nn.ReLU(self.graph, l2w2_plus_b2)
+            l2w3 = nn.MatrixMultiply(self.graph, l2, self.w3)
+            l2w3_plus_b3= nn.MatrixVectorAdd(self.graph, l2w3, self.b3)
+            loss = nn.SquareLoss(self.graph, l2w3_plus_b3, input_y)
+
+            return self.graph
+            
         else:
             # At test time, the correct output is unknown.
             # You should instead return your model's prediction as a numpy array
             "*** YOUR CODE HERE ***"
+            input_x = nn.Input(self.graph, x)
+           
+            xw1 = nn.MatrixMultiply(self.graph, input_x, self.w1)
+            xw1_plus_b1 = nn.MatrixVectorAdd(self.graph, xw1, self.b1)
+            l1 = nn.ReLU(self.graph, xw1_plus_b1)
+            l1w2 = nn.MatrixMultiply(self.graph, l1, self.w2)
+            l2w2_plus_b2 = nn.MatrixVectorAdd(self.graph, l1w2, self.b2)
+            l2 = nn.ReLU(self.graph, l2w2_plus_b2)
+            l2w3 = nn.MatrixMultiply(self.graph, l2, self.w3)
+            l2w3_plus_b3= nn.MatrixVectorAdd(self.graph, l2w3, self.b3)
+
+            return self.graph.get_output(l2w3_plus_b3)
+
 
 
 class OddRegressionModel(Model):
@@ -101,6 +138,17 @@ class OddRegressionModel(Model):
         # Remember to set self.learning_rate!
         # You may use any learning rate that works well for your architecture
         "*** YOUR CODE HERE ***"
+        self.learning_rate = 0.1
+        self.hidden_size = 400
+        self.neg_1 = np.array([[-1.]])
+
+        self.w1 = nn.Variable(1, self.hidden_size)
+        self.w2 = nn.Variable(self.hidden_size, self.hidden_size)
+        self.w3 = nn.Variable(self.hidden_size, 1)
+        self.b1 = nn.Variable(self.hidden_size)
+        self.b2 = nn.Variable(self.hidden_size)
+        self.b3 = nn.Variable(1)
+
 
     def run(self, x, y=None):
         """
@@ -124,6 +172,7 @@ class OddRegressionModel(Model):
         Note: DO NOT call backprop() or step() inside this method!
         """
         "*** YOUR CODE HERE ***"
+        self.graph = nn.Graph([self.w1, self.w2, self.w3, self.b1, self.b2, self.b3])
 
         if y is not None:
             # At training time, the correct output `y` is known.
@@ -131,10 +180,68 @@ class OddRegressionModel(Model):
             # that the node belongs to. The loss node must be the last node
             # added to the graph.
             "*** YOUR CODE HERE ***"
+            input_x = nn.Input(self.graph, x)
+            input_neg_x = nn.Input(self.graph, -x)
+            input_neg_one = nn.Input(self.graph, self.neg_1)
+            input_y = nn.Input(self.graph, y)
+
+            xw1 = nn.MatrixMultiply(self.graph, input_x, self.w1)
+            xw1_plus_b1 = nn.MatrixVectorAdd(self.graph, xw1, self.b1)
+            l1 = nn.ReLU(self.graph, xw1_plus_b1)
+            l1w2 = nn.MatrixMultiply(self.graph, l1, self.w2)
+            l2_pos = nn.MatrixVectorAdd(self.graph, l1w2, self.b2)
+            l2 = nn.ReLU(self.graph, l2_pos)
+            l2w3 = nn.MatrixMultiply(self.graph, l2, self.w3)
+            l3_pos= nn.MatrixVectorAdd(self.graph, l2w3, self.b3)
+
+            xw1 = nn.MatrixMultiply(self.graph, input_neg_x, self.w1)
+            xw1_plus_b1 = nn.MatrixVectorAdd(self.graph, xw1, self.b1)
+            l1 = nn.ReLU(self.graph, xw1_plus_b1)
+            l1w2 = nn.MatrixMultiply(self.graph, l1, self.w2)
+            l2_neg = nn.MatrixVectorAdd(self.graph, l1w2, self.b2)
+            l2 = nn.ReLU(self.graph, l2_neg)
+            l2w3 = nn.MatrixMultiply(self.graph, l2, self.w3)
+            l3_neg = nn.MatrixVectorAdd(self.graph, l2w3, self.b3)
+
+
+            neg_l3_neg = nn.MatrixMultiply(self.graph, l3_neg, input_neg_one)
+            odd_f = nn.Add(self.graph, l3_pos, neg_l3_neg)
+
+            loss = nn.SquareLoss(self.graph, odd_f, input_y)
+
+            return self.graph
+
         else:
             # At test time, the correct output is unknown.
             # You should instead return your model's prediction as a numpy array
             "*** YOUR CODE HERE ***"
+            input_x = nn.Input(self.graph, x)
+            input_neg_x = nn.Input(self.graph, -x)
+            input_neg_one = nn.Input(self.graph, self.neg_1)
+
+            xw1 = nn.MatrixMultiply(self.graph, input_x, self.w1)
+            xw1_plus_b1 = nn.MatrixVectorAdd(self.graph, xw1, self.b1)
+            l1 = nn.ReLU(self.graph, xw1_plus_b1)
+            l1w2 = nn.MatrixMultiply(self.graph, l1, self.w2)
+            l2_pos = nn.MatrixVectorAdd(self.graph, l1w2, self.b2)
+            l2 = nn.ReLU(self.graph, l2_pos)
+            l2w3 = nn.MatrixMultiply(self.graph, l2, self.w3)
+            l3_pos= nn.MatrixVectorAdd(self.graph, l2w3, self.b3)
+
+            xw1 = nn.MatrixMultiply(self.graph, input_neg_x, self.w1)
+            xw1_plus_b1 = nn.MatrixVectorAdd(self.graph, xw1, self.b1)
+            l1 = nn.ReLU(self.graph, xw1_plus_b1)
+            l1w2 = nn.MatrixMultiply(self.graph, l1, self.w2)
+            l2_neg = nn.MatrixVectorAdd(self.graph, l1w2, self.b2)
+            l2 = nn.ReLU(self.graph, l2_neg)
+            l2w3 = nn.MatrixMultiply(self.graph, l2, self.w3)
+            l3_neg = nn.MatrixVectorAdd(self.graph, l2w3, self.b3)
+
+
+            neg_l3_neg = nn.MatrixMultiply(self.graph, l3_neg, input_neg_one)
+            odd_f = nn.Add(self.graph, l3_pos, neg_l3_neg)
+
+            return self.graph.get_output(odd_f)
 
 
 class DigitClassificationModel(Model):
@@ -161,6 +268,16 @@ class DigitClassificationModel(Model):
         # Remember to set self.learning_rate!
         # You may use any learning rate that works well for your architecture
         "*** YOUR CODE HERE ***"
+        self.learning_rate = 0.1
+        self.hidden_size = 400
+
+        self.w1 = nn.Variable(784, self.hidden_size)
+        self.w2 = nn.Variable(self.hidden_size, 1)
+        self.w3 = nn.Variable(self.hidden_size, 10)
+        self.b1 = nn.Variable(self.hidden_size)
+        self.b2 = nn.Variable(1)
+        self.b3 = nn.Variable(10)
+
 
     def run(self, x, y=None):
         """
@@ -187,11 +304,37 @@ class DigitClassificationModel(Model):
             (if y is None) A (batch_size x 10) numpy array of scores (aka logits)
         """
         "*** YOUR CODE HERE ***"
+        self.graph = nn.Graph([self.w1, self.w2, self.w3, self.b1, self.b2, self.b3])
 
         if y is not None:
             "*** YOUR CODE HERE ***"
+            input_x = nn.Input(self.graph, x)
+            input_y = nn.Input(self.graph, y)
+            xw1 = nn.MatrixMultiply(self.graph, input_x, self.w1)
+            xw1_plus_b1 = nn.MatrixVectorAdd(self.graph, xw1, self.b1)
+            l1 = nn.ReLU(self.graph, xw1_plus_b1)
+            l1w2 = nn.MatrixMultiply(self.graph, l1, self.w2)
+            l2w2_plus_b2 = nn.MatrixVectorAdd(self.graph, l1w2, self.b2)
+            # l2 = nn.ReLU(self.graph, l2w2_plus_b2)
+            # l2w3 = nn.MatrixMultiply(self.graph, l2, self.w3)
+            # l2w3_plus_b3= nn.MatrixVectorAdd(self.graph, l2w3, self.b3)
+            loss = nn.SoftmaxLoss(self.graph, l2w2_plus_b2, input_y)
+
+            return self.graph
         else:
             "*** YOUR CODE HERE ***"
+            input_x = nn.Input(self.graph, x)
+           
+            xw1 = nn.MatrixMultiply(self.graph, input_x, self.w1)
+            xw1_plus_b1 = nn.MatrixVectorAdd(self.graph, xw1, self.b1)
+            l1 = nn.ReLU(self.graph, xw1_plus_b1)
+            l1w2 = nn.MatrixMultiply(self.graph, l1, self.w2)
+            l2w2_plus_b2 = nn.MatrixVectorAdd(self.graph, l1w2, self.b2)
+            # l2 = nn.ReLU(self.graph, l2w2_plus_b2)
+            # l2w3 = nn.MatrixMultiply(self.graph, l2, self.w3)
+            # l2w3_plus_b3= nn.MatrixVectorAdd(self.graph, l2w3, self.b3)
+
+            return self.graph.get_output(l2w2_plus_b2)
 
 
 class DeepQModel(Model):
