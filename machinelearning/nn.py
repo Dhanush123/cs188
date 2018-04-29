@@ -368,8 +368,7 @@ class MatrixVectorAdd(FunctionNode):
     def forward(inputs):
         i0 = np.matrix(inputs[0])
         i1 = np.array(inputs[1])
-        i0 += i1
-        return i0
+        return i0 + i1
 
     @staticmethod
     def backward(inputs, gradient):
@@ -450,8 +449,8 @@ class SoftmaxLoss(FunctionNode):
 
     @staticmethod
     def log_softmax(logits):
-        log_probs = logits - np.max(logits, axis=1, keepdims=True)
-        log_probs -= np.log(np.sum(np.exp(log_probs), axis=1, keepdims=True))
+        log_probs = logits - np.max(logits, axis=1,keepdims=True) 
+        log_probs -= np.log(np.sum(np.exp(log_probs), axis=1,keepdims=True))
         return log_probs
 
     @staticmethod
