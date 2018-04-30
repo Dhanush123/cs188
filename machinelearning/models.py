@@ -269,8 +269,7 @@ class DigitClassificationModel(Model):
         # You may use any learning rate that works well for your architecture
         "*** YOUR CODE HERE ***"
         self.learning_rate = 0.1
-        self.hidden_size = 400
-
+        self.hidden_size = 200
         self.w1 = nn.Variable(784, self.hidden_size)
         self.w2 = nn.Variable(self.hidden_size, self.hidden_size)
         self.w3 = nn.Variable(self.hidden_size, 10)
@@ -509,6 +508,7 @@ class LanguageIDModel(Model):
         Hint: you may use the batch_size variable in your code
         """
         "*** YOUR CODE HERE ***"
+        print "numpy!!!",np.__version__
         batch_size = xs[0].shape[0]
 
         self.graph = nn.Graph([self.w1,self.w2,self.b1])

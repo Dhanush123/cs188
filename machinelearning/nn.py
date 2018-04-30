@@ -449,13 +449,15 @@ class SoftmaxLoss(FunctionNode):
 
     @staticmethod
     def log_softmax(logits):
-        log_probs = logits - np.max(logits, axis=1,keepdims=True) 
-        log_probs -= np.log(np.sum(np.exp(log_probs), axis=1,keepdims=True))
+        print "logits",logits.shape
+        log_probs = logits - np.max(logits, axis=1, keepdims=True) 
+        log_probs -= np.log(np.sum(np.exp(log_probs), axis=1, keepdims=True))
         return log_probs
 
     @staticmethod
     def forward(inputs):
         labels = inputs[1]
+        print "labels",labels.shape
         assert np.all(labels >= 0), \
             "Labels input to SoftmaxLoss must be non-negative. (Did you pass the inputs in the right order?)"
         assert np.allclose(np.sum(labels, axis=1), np.ones(labels.shape[0])), \
