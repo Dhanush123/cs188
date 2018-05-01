@@ -268,8 +268,8 @@ class DigitClassificationModel(Model):
         # Remember to set self.learning_rate!
         # You may use any learning rate that works well for your architecture
         "*** YOUR CODE HERE ***"
-        self.learning_rate = 0.1
-        self.hidden_size = 200
+        self.learning_rate = 0.15
+        self.hidden_size = 300
         self.w1 = nn.Variable(784, self.hidden_size)
         self.w2 = nn.Variable(self.hidden_size, self.hidden_size)
         self.w3 = nn.Variable(self.hidden_size, 10)
@@ -305,7 +305,6 @@ class DigitClassificationModel(Model):
         self.graph = nn.Graph([self.w1, self.w2, self.w3, self.b1, self.b2, self.b3])
 
         if y is not None:
-            print self.w1.data.shape,self.w2.data.shape,self.w3.data.shape,self.b1.data.shape,self.b2.data.shape,self.b3.data.shape
             "*** YOUR CODE HERE ***"
             input_x = nn.Input(self.graph, x)
             input_y = nn.Input(self.graph, y)
@@ -318,8 +317,6 @@ class DigitClassificationModel(Model):
             l2 = nn.ReLU(self.graph, l2w2_plus_b2)
             l2w3 = nn.MatrixMultiply(self.graph, l2, self.w3)
             l2w3_plus_b3 = nn.MatrixVectorAdd(self.graph, l2w3, self.b3)
-
-            print l2w3_plus_b3,input_y.data.shape,type(input_y)
 
             loss = nn.SoftmaxLoss(self.graph, l2w3_plus_b3, input_y)
             return self.graph
@@ -363,8 +360,8 @@ class DeepQModel(Model):
 
         # Remember to set self.learning_rate!
         # You may use any learning rate that works well for your architecture
-        self.learning_rate = 0.05
-        self.hidden_size = 50
+        self.learning_rate = 0.01
+        self.hidden_size = 400
 
         self.w1 = nn.Variable(4,self.hidden_size)
         self.w2 = nn.Variable(self.hidden_size,self.hidden_size)
@@ -409,14 +406,13 @@ class DeepQModel(Model):
             l2 = nn.ReLU(self.graph,nn.MatrixVectorAdd(self.graph,nn.MatrixMultiply(self.graph,l1,self.w2),self.b2))
             l3 = nn.MatrixVectorAdd(self.graph,nn.MatrixMultiply(self.graph,l2,self.w3),self.b3)
             loss = nn.SquareLoss(self.graph, l3, input_y)
-            print "loss!!!",loss.shape
+
             return self.graph
         else:
             input_x = nn.Input(self.graph, states)
             l1 = nn.ReLU(self.graph,nn.MatrixVectorAdd(self.graph,nn.MatrixMultiply(self.graph,input_x,self.w1),self.b1))
             l2 = nn.ReLU(self.graph,nn.MatrixVectorAdd(self.graph,nn.MatrixMultiply(self.graph,l1,self.w2),self.b2))           
             l3 = nn.MatrixVectorAdd(self.graph,nn.MatrixMultiply(self.graph,l2,self.w3),self.b3)
-            print "output", self.graph.get_output(l3).shape
             return self.graph.get_output(l3)
 
     def get_action(self, state, eps):
@@ -465,8 +461,8 @@ class LanguageIDModel(Model):
         self.hidden_size = 275
 
         self.w1 = nn.Variable(self.num_chars,self.hidden_size)
-        self.w2 = nn.Variable(self.hidden_size,self.num_chars)
-        self.b1 = nn.Variable(self.num_chars)
+        self.w2 = nn.Variable(self.hidden_size,5)
+        self.b1 = nn.Variable(5)
 
     def run(self, xs, y=None):
         """
@@ -508,7 +504,6 @@ class LanguageIDModel(Model):
         Hint: you may use the batch_size variable in your code
         """
         "*** YOUR CODE HERE ***"
-        print "numpy!!!",np.__version__
         batch_size = xs[0].shape[0]
 
         self.graph = nn.Graph([self.w1,self.w2,self.b1])
@@ -527,7 +522,6 @@ class LanguageIDModel(Model):
             #final matrix computation
             another_mm = nn.MatrixMultiply(self.graph,self.h_vec,self.w2)
             self.h_final = nn.MatrixVectorAdd(self.graph,another_mm,self.b1)
-
             #loss
             loss = nn.SoftmaxLoss(self.graph,self.h_final,self.input_y)
 
